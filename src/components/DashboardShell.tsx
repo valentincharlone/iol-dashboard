@@ -1,14 +1,32 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 
-const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutos
+const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const check = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) setMobileOpen(false);
+    };
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => router.refresh(), REFRESH_INTERVAL_MS);
@@ -16,9 +34,49 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
-      <main style={{ flex: 1, overflowY: "auto" }}>{children}</main>
+    <div className="flex min-h-screen bg-bg">
+
+      {/* Backdrop mobile */}
+      {isMobile && mobileOpen && (
+        <div
+          onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30"
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={isMobile
+        ? `fixed top-0 left-0 h-screen z-40 transition-transform duration-250 ease-in-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`
+        : ""
+      }>
+        <Sidebar
+          collapsed={isMobile ? false : collapsed}
+          onToggle={isMobile ? () => setMobileOpen(false) : () => setCollapsed((c) => !c)}
+          isMobile={isMobile}
+        />
+      </div>
+
+      {/* Main */}
+      <main className={`flex-1 overflow-y-auto ${isMobile ? "ml-0" : ""}`}>
+        {/* Barra superior mobile */}
+        {isMobile && (
+          <div className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 bg-white border-b border-border">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="p-1 text-text2 flex"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand to-brand-light flex items-center justify-center text-white font-bold text-[11px]">
+              IOL
+            </div>
+            <span className="font-semibold text-[15px] text-text1">Dashboard</span>
+          </div>
+        )}
+        {children}
+      </main>
     </div>
   );
 }

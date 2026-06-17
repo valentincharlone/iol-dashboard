@@ -1,85 +1,54 @@
-const SHIMMER: React.CSSProperties = {
-  background: "linear-gradient(90deg, #F0F3F9 25%, #E8ECF4 50%, #F0F3F9 75%)",
-  backgroundSize: "600px 100%",
-  animation: "shimmer 1.4s ease infinite",
-  borderRadius: 6,
-};
-
-const COL_WIDTHS = ["140px", "80px", "120px", "70px", "90px", "100px", "80px"];
-const ROWS = 12;
+const COLS = ["140px", "80px", "120px", "70px", "90px", "100px", "80px"];
 
 export default function MovimientosLoading() {
   return (
-    <div style={{ padding: "24px", paddingBottom: 48, display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* Header */}
+    <div className="p-4 pb-12 md:p-6 md:pb-16 flex flex-col gap-4 md:gap-5">
       <div>
-        <div style={{ ...SHIMMER, height: 26, width: 160, marginBottom: 6 }} />
-        <div style={{ ...SHIMMER, height: 14, width: 240 }} />
+        <div className="shimmer h-6 w-40 mb-1.5" />
+        <div className="shimmer h-3.5 w-60" />
       </div>
 
-      {/* Table card */}
-      <div style={{
-        background: "white", borderRadius: 14,
-        border: "1px solid var(--border-light)",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.04)", overflow: "clip",
-      }}>
-        {/* Toolbar */}
-        <div style={{
-          padding: "16px 20px", borderBottom: "1px solid var(--border-light)",
-          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ ...SHIMMER, height: 18, width: 110 }} />
-            <div style={{ ...SHIMMER, height: 14, width: 90 }} />
+      <div className="bg-white rounded-card border border-border-light shadow-card overflow-clip">
+        <div className="px-5 py-4 border-b border-border-light flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="shimmer h-[18px] w-28" />
+            <div className="shimmer h-3.5 w-24" />
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div className="flex gap-2 items-center flex-wrap">
             {[70, 70, 70, 60, 70, 80, 80].map((w, i) => (
-              <div key={i} style={{ ...SHIMMER, height: 30, width: w, borderRadius: 6 }} />
+              <div key={i} className="shimmer rounded-md" style={{ height: 30, width: w }} />
             ))}
-            <div style={{ ...SHIMMER, height: 30, width: 100, borderRadius: 8 }} />
+            <div className="shimmer rounded-lg" style={{ height: 30, width: 100 }} />
           </div>
         </div>
 
-        {/* Table */}
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 760 }}>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse" style={{ minWidth: 760 }}>
             <thead>
               <tr>
-                {COL_WIDTHS.map((w, i) => (
-                  <th key={i} style={{
-                    padding: "10px 12px", borderBottom: "1px solid var(--border)",
-                    textAlign: i < 3 ? "left" : "right",
-                    paddingLeft: i === 0 ? 20 : 12,
-                    paddingRight: i === COL_WIDTHS.length - 1 ? 20 : 12,
-                  }}>
-                    <div style={{ ...SHIMMER, height: 10, width: w, marginLeft: i < 3 ? 0 : "auto" }} />
+                {COLS.map((w, i) => (
+                  <th key={i} className={`py-2.5 px-3 border-b border-border ${i === 0 ? "pl-5" : ""} ${i === COLS.length - 1 ? "pr-5" : ""} ${i < 3 ? "text-left" : "text-right"}`}>
+                    <div className="shimmer" style={{ height: 10, width: w, marginLeft: i < 3 ? 0 : "auto" }} />
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: ROWS }).map((_, i) => (
+              {Array.from({ length: 12 }).map((_, i) => (
                 <tr key={i}>
-                  {/* Fecha */}
-                  <td style={{ padding: "12px 12px 12px 20px", borderBottom: "1px solid #F5F7FB" }}>
-                    <div style={{ ...SHIMMER, height: 13, width: 120 }} />
+                  <td className="pl-5 pr-3 py-3 border-b border-[#F5F7FB]">
+                    <div className="shimmer h-3 w-28" />
                   </td>
-                  {/* Tipo badge */}
-                  <td style={{ padding: "12px", borderBottom: "1px solid #F5F7FB" }}>
-                    <div style={{ ...SHIMMER, height: 20, width: 64, borderRadius: 4 }} />
+                  <td className="px-3 py-3 border-b border-[#F5F7FB]">
+                    <div className="shimmer h-5 w-16 rounded" />
                   </td>
-                  {/* Activo */}
-                  <td style={{ padding: "12px", borderBottom: "1px solid #F5F7FB" }}>
-                    <div style={{ ...SHIMMER, height: 14, width: 55, marginBottom: 5 }} />
-                    <div style={{ ...SHIMMER, height: 11, width: 35 }} />
+                  <td className="px-3 py-3 border-b border-[#F5F7FB]">
+                    <div className="shimmer h-3.5 w-14 mb-1" />
+                    <div className="shimmer h-[11px] w-9" />
                   </td>
-                  {/* Cantidad, Precio, Total, Estado */}
                   {[50, 80, 90, 60].map((w, j) => (
-                    <td key={j} style={{
-                      padding: "12px", borderBottom: "1px solid #F5F7FB", textAlign: "right",
-                      paddingRight: j === 3 ? 20 : 12,
-                    }}>
-                      <div style={{ ...SHIMMER, height: 14, width: w, marginLeft: "auto" }} />
+                    <td key={j} className={`px-3 py-3 border-b border-[#F5F7FB] text-right ${j === 3 ? "pr-5" : ""}`}>
+                      <div className="shimmer ml-auto" style={{ height: 14, width: w }} />
                     </td>
                   ))}
                 </tr>

@@ -3,7 +3,7 @@
 import { getValidToken, invalidateTokens } from "./iol-auth";
 import type {
   IOLPortafolio, IOLEstadoCuenta, DashboardData, DashboardPosicion, EstadoCuenta,
-  IOLCotizacionResponse, CotizacionItem, IOLOperacion, IOLPerfil,
+  IOLCotizacionResponse, CotizacionItem, IOLOperacion, IOLPerfil, MarketStripItem,
 } from "./iol-types";
 
 const IOL_API_BASE = "https://api.invertironline.com";
@@ -159,6 +159,44 @@ export async function getCotizacionesPortafolio(): Promise<CotizacionItem[]> {
 
 export async function getPerfil(): Promise<IOLPerfil> {
   return iolFetch<IOLPerfil>("/api/v2/datos-perfil");
+}
+
+export async function getMarketStrip(): Promise<MarketStripItem[]> {
+  const [mervalRes, spyRes, mepRes] = await Promise.allSettled([
+    iolFetch<IOLCotizacionResponse>("/api/v2/bCBA/Titulos/MERVAL/Cotizacion"),
+    iolFetch<IOLCotizacionResponse>("/api/v2/bCBA/Titulos/SPY/Cotizacion"),
+    iolFetch<number>("/api/v2/Cotizaciones/MEP/AL30"),
+  ]);
+
+  const items: MarketStripItem[] = [];
+
+  if (mervalRes.status === "fulfilled") {
+    const d = mervalRes.value;
+    items.push({
+      label: "S&P Merval",
+      value: "$" + Math.round(d.ultimoPrecio).toLocaleString("es-AR"),
+      variacion: d.variacion ?? (d.cierreAnterior > 0 ? ((d.ultimoPrecio - d.cierreAnterior) / d.cierreAnterior) * 100 : null),
+    });
+  }
+
+  if (spyRes.status === "fulfilled") {
+    const d = spyRes.value;
+    items.push({
+      label: "SPY (S&P 500)",
+      value: "$" + Math.round(d.ultimoPrecio).toLocaleString("es-AR"),
+      variacion: d.variacion ?? (d.cierreAnterior > 0 ? ((d.ultimoPrecio - d.cierreAnterior) / d.cierreAnterior) * 100 : null),
+    });
+  }
+
+  if (mepRes.status === "fulfilled" && mepRes.value > 0) {
+    items.push({
+      label: "Dólar MEP",
+      value: "$" + Math.round(mepRes.value).toLocaleString("es-AR"),
+      variacion: null,
+    });
+  }
+
+  return items;
 }
 
 export async function getOperaciones(fechaDesde?: string, fechaHasta?: string): Promise<IOLOperacion[]> {

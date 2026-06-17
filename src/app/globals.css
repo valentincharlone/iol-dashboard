@@ -29,14 +29,13 @@ body {
   50%       { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.1); }
 }
 
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+.shimmer {
+  background: linear-gradient(90deg, #F0F3F9 25%, #E8ECF4 50%, #F0F3F9 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 6px;
 }
-::-webkit-scrollbar-track {
-  background: #F0F3F9;
-}
-::-webkit-scrollbar-thumb {
-  background: #C8CDDC;
-  border-radius: 3px;
-}
+
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #F0F3F9; }
+::-webkit-scrollbar-thumb { background: #C8CDDC; border-radius: 3px; }

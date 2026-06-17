@@ -100,8 +100,8 @@ function DonutChart({ segments, total }: { segments: Segment[]; total: number })
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
-      <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <div style={{ position: "relative", width: "100%", maxWidth: size, aspectRatio: "1" }}>
+        <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`}>
           <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
             {segments.map((seg, i) => {
               const len = (seg.pct / 100) * C;
@@ -124,7 +124,7 @@ function DonutChart({ segments, total }: { segments: Segment[]; total: number })
         </svg>
         <div style={{
           position: "absolute", top: "50%", left: "50%",
-          transform: "translate(-50%, -50%)", textAlign: "center",
+          transform: "translate(-50%, -50%)", textAlign: "center", whiteSpace: "nowrap",
         }}>
           <div style={{ fontSize: 20, fontWeight: 700, color: "var(--text-1)", fontVariantNumeric: "tabular-nums", letterSpacing: -0.5 }}>
             {fmt(total)}
@@ -140,15 +140,34 @@ function DonutChart({ segments, total }: { segments: Segment[]; total: number })
 }
 
 function BarDistribution({ segments }: { segments: Segment[] }) {
+  const maxPct = Math.max(...segments.map((s) => s.pct));
+  const BAR_HEIGHT = 140;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden", gap: 2 }}>
-        {segments.map((seg, i) => (
-          <div key={i} style={{
-            flex: seg.pct, background: seg.color, transition: "flex 0.5s ease",
-            borderRadius: i === 0 ? "7px 0 0 7px" : i === segments.length - 1 ? "0 7px 7px 0" : 0,
-          }} />
-        ))}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: BAR_HEIGHT + 32, paddingBottom: 0 }}>
+        {segments.map((seg) => {
+          const barH = maxPct > 0 ? (seg.pct / maxPct) * BAR_HEIGHT : 0;
+          return (
+            <div key={seg.tipo} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, justifyContent: "flex-end", height: "100%" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: seg.color, fontVariantNumeric: "tabular-nums" }}>
+                {seg.pct.toFixed(1)}%
+              </span>
+              <div style={{
+                width: "100%", height: barH, background: seg.color,
+                borderRadius: "5px 5px 0 0", transition: "height 0.5s ease",
+                opacity: 0.9,
+              }} />
+              <span style={{
+                fontSize: 10, color: "var(--text-3)", fontWeight: 500,
+                textAlign: "center", lineHeight: 1.2, maxWidth: "100%",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {seg.label}
+              </span>
+            </div>
+          );
+        })}
       </div>
       <Legend segments={segments} />
     </div>

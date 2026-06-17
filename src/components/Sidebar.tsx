@@ -34,152 +34,134 @@ const CollapseIcon = () => (
     <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
   </svg>
 );
+const CloseIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>
+);
+const LogoutIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+  </svg>
+);
 
-const NAV = [
-  { href: "/dashboard",              label: "Portafolio",    icon: <PortfolioIcon /> },
-  { href: "/dashboard/cotizaciones", label: "Cotizaciones",  icon: <QuotesIcon /> },
-  { href: "/dashboard/movimientos",  label: "Movimientos",   icon: <MovementsIcon /> },
-  { href: "/dashboard/perfil",       label: "Mi perfil",     icon: <ProfileIcon /> },
+const NAV_MAIN = [
+  { href: "/dashboard",              label: "Portafolio",   icon: <PortfolioIcon /> },
+  { href: "/dashboard/cotizaciones", label: "Cotizaciones", icon: <QuotesIcon /> },
+  { href: "/dashboard/movimientos",  label: "Movimientos",  icon: <MovementsIcon /> },
+];
+const NAV_SECONDARY = [
+  { href: "/dashboard/perfil", label: "Mi perfil", icon: <ProfileIcon /> },
 ];
 
 interface Props {
   collapsed: boolean;
   onToggle: () => void;
+  isMobile?: boolean;
 }
 
-export function Sidebar({ collapsed, onToggle }: Props) {
+export function Sidebar({ collapsed, onToggle, isMobile }: Props) {
   const pathname = usePathname();
-  const w = collapsed ? 64 : 220;
+  const w = collapsed ? "w-16 min-w-16" : "w-[220px] min-w-[220px]";
 
   function isActive(href: string) {
     return href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
   }
 
-  return (
-    <aside style={{
-      width: w, minWidth: w, height: "100vh", position: "sticky", top: 0,
-      background: "#fff", borderRight: "1px solid var(--border)",
-      display: "flex", flexDirection: "column",
-      transition: "width 0.25s ease, min-width 0.25s ease",
-      overflow: "hidden", zIndex: 20, flexShrink: 0,
-    }}>
-      {/* Logo */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 10,
-        padding: collapsed ? "20px 0" : "20px",
-        justifyContent: collapsed ? "center" : "flex-start",
-        borderBottom: "1px solid var(--border)", minHeight: 64,
-      }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-          background: "linear-gradient(135deg, #4338CA, #818CF8)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          color: "white", fontWeight: 700, fontSize: 12, letterSpacing: -0.5,
-        }}>IOL</div>
-        {!collapsed && (
-          <span style={{ fontWeight: 600, fontSize: 15, color: "var(--text-1)", whiteSpace: "nowrap" }}>
-            Dashboard
-          </span>
-        )}
-      </div>
+  function navLink(href: string, label: string, icon: React.ReactNode) {
+    const active = isActive(href);
+    return (
+      <Link
+        key={href}
+        href={href}
+        className={[
+          "flex items-center gap-3 rounded-lg text-sm font-normal no-underline transition-colors",
+          collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5",
+          active
+            ? "bg-brand-muted text-brand font-semibold"
+            : "text-text2 hover:bg-[#F5F6FA]",
+        ].join(" ")}
+      >
+        <span className="shrink-0">{icon}</span>
+        {!collapsed && <span className="whitespace-nowrap">{label}</span>}
+      </Link>
+    );
+  }
 
-      {/* Nav */}
-      <nav style={{ flex: 1, padding: "12px 10px", display: "flex", flexDirection: "column", gap: 2 }}>
-        {NAV.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              style={{
-                display: "flex", alignItems: "center", gap: 12,
-                padding: collapsed ? "10px 0" : "10px 12px",
-                justifyContent: collapsed ? "center" : "flex-start",
-                borderRadius: 8,
-                textDecoration: "none",
-                background: active ? "#EEF2FF" : "transparent",
-                color: active ? "#4338CA" : "var(--text-2)",
-                fontWeight: active ? 600 : 400, fontSize: 14, whiteSpace: "nowrap",
-                transition: "background 0.15s ease",
-              }}
-              onMouseEnter={(e) => {
-                if (!active) e.currentTarget.style.background = "#F5F6FA";
-              }}
-              onMouseLeave={(e) => {
-                if (!active) e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <span style={{ flexShrink: 0 }}>{item.icon}</span>
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
-          );
-        })}
+  return (
+    <aside className={`${w} h-screen sticky top-0 bg-white border-r border-border flex flex-col transition-[width,min-width] duration-250 ease-in-out overflow-hidden z-20 shrink-0`}>
+
+      {/* Header: Logo + Toggle */}
+      {collapsed ? (
+        <div
+          onClick={onToggle}
+          title="Expandir sidebar"
+          className="flex items-center justify-center border-b border-border min-h-16 cursor-pointer"
+        >
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand to-brand-light flex items-center justify-center text-white font-bold text-xs tracking-tight">
+            IOL
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between px-4 py-4 border-b border-border min-h-16 gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand to-brand-light flex items-center justify-center text-white font-bold text-xs tracking-tight shrink-0">
+              IOL
+            </div>
+            <span className="font-semibold text-[15px] text-text1 whitespace-nowrap">Dashboard</span>
+          </div>
+          <button
+            onClick={onToggle}
+            title={isMobile ? "Cerrar menú" : "Colapsar sidebar"}
+            className="text-text3 shrink-0 flex hover:text-brand transition-colors"
+          >
+            {isMobile ? <CloseIcon /> : <CollapseIcon />}
+          </button>
+        </div>
+      )}
+
+      {/* Nav principal */}
+      <nav className="px-2.5 pt-3 pb-1 flex flex-col gap-0.5">
+        {NAV_MAIN.map(({ href, label, icon }) => navLink(href, label, icon))}
       </nav>
 
-      {/* API Docs */}
-      <div style={{ padding: "0 10px 8px" }}>
+      {/* Divisor */}
+      <div className="mx-2.5 my-1 border-t border-border" />
+
+      {/* Nav secundaria */}
+      <nav className="px-2.5 py-1 flex flex-col gap-0.5">
+        {NAV_SECONDARY.map(({ href, label, icon }) => navLink(href, label, icon))}
+
         <a
           href="/api-docs.html"
           target="_blank"
           rel="noopener noreferrer"
           title="Documentación API IOL"
-          style={{
-            display: "flex", alignItems: "center", gap: 12,
-            padding: collapsed ? "10px 0" : "10px 12px",
-            justifyContent: collapsed ? "center" : "flex-start",
-            borderRadius: 8, textDecoration: "none",
-            color: "var(--text-3)", fontSize: 14, whiteSpace: "nowrap",
-            transition: "background 0.15s ease, color 0.15s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#F5F6FA";
-            e.currentTarget.style.color = "var(--text-2)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "var(--text-3)";
-          }}
+          className={[
+            "flex items-center gap-3 rounded-lg text-sm no-underline transition-colors text-text3 hover:bg-[#F5F6FA] hover:text-text2",
+            collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5",
+          ].join(" ")}
         >
-          <span style={{ flexShrink: 0 }}><DocsIcon /></span>
-          {!collapsed && <span>API Docs</span>}
+          <span className="shrink-0"><DocsIcon /></span>
+          {!collapsed && <span className="whitespace-nowrap">API Docs</span>}
         </a>
-      </div>
+      </nav>
 
-      {/* Logout */}
-      <div
-        onClick={() => signOut({ callbackUrl: "/login" })}
-        title="Cerrar sesión"
-        style={{
-          padding: "12px 0",
-          display: "flex", justifyContent: "center", alignItems: "center", gap: 8,
-          cursor: "pointer", color: "var(--text-3)", transition: "color 0.15s",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "#EF4444")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-3)")}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-        {!collapsed && <span style={{ fontSize: 13, fontWeight: 500 }}>Cerrar sesión</span>}
-      </div>
+      <div className="flex-1" />
 
-      {/* Toggle */}
-      <div
-        onClick={onToggle}
-        style={{
-          padding: "16px 0", borderTop: "1px solid var(--border)",
-          display: "flex", justifyContent: "center",
-          cursor: "pointer", color: "var(--text-3)", transition: "color 0.15s",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "#4338CA")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-3)")}
-      >
-        <span style={{
-          transform: collapsed ? "scaleX(-1)" : "none",
-          transition: "transform 0.25s", display: "flex",
-        }}>
-          <CollapseIcon />
-        </span>
+      {/* Footer: Cerrar sesión */}
+      <div className="px-2.5 py-3 border-t border-border">
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          title="Cerrar sesión"
+          className={[
+            "w-full flex items-center gap-3 rounded-lg text-sm text-text3 transition-colors hover:bg-loss-bg hover:text-loss",
+            collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5",
+          ].join(" ")}
+        >
+          <LogoutIcon />
+          {!collapsed && <span className="font-medium whitespace-nowrap">Cerrar sesión</span>}
+        </button>
       </div>
     </aside>
   );

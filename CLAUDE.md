@@ -110,4 +110,4 @@ moneda          enum     peso_Argentino | dolar_Estadounidense | ...
 - [ ] Deploy en Vercel + login con NextAuth (usuario único)
 - [ ] Página de Cotizaciones (sidebar muestra "PRONTO")
 - [ ] Página de Movimientos / Operaciones (sidebar muestra "PRONTO")
-- [ ] Actualizar `next` a `>=15.3.4` (CVE-2025-66478 en 15.3.3)
+- [x] Actualizar `next` a `>=15.3.4` (CVE-2025-66478 en 15.3.3) — actualizado a 15.5.19
