@@ -3,39 +3,10 @@
 import { useState, useMemo } from "react";
 import type { CotizacionItem } from "@/lib/iol-types";
 import { fmtMoney, fmtPct } from "@/lib/fmt";
+import { getBadge, tipoLabel } from "@/lib/instrument";
 
 interface Props {
   items: CotizacionItem[];
-}
-
-const TIPO_BADGE: Record<string, { bg: string; text: string }> = {
-  cedear:    { bg: "#EEF2FF", text: "#4338CA" },
-  accion:    { bg: "#FFF7ED", text: "#C2410C" },
-  bono:      { bg: "#F0FDFA", text: "#0D9488" },
-  fci:       { bg: "#FFFBEB", text: "#92400E" },
-  obligacion:{ bg: "#F5F3FF", text: "#6D28D9" },
-  caucion:   { bg: "#ECFEFF", text: "#0E7490" },
-  opcion:    { bg: "#FDF2F8", text: "#9D174D" },
-};
-
-function getBadge(tipo: string) {
-  const key = tipo.toLowerCase();
-  for (const [match, style] of Object.entries(TIPO_BADGE)) {
-    if (key.includes(match)) return style;
-  }
-  return { bg: "#F0F2F8", text: "#6E7191" };
-}
-
-function tipoLabel(tipo: string): string {
-  const key = tipo.toLowerCase();
-  if (key.includes("cedear"))    return "CEDEAR";
-  if (key.includes("accion"))    return "Acción";
-  if (key.includes("bono"))      return "Bono";
-  if (key.includes("fci"))       return "FCI";
-  if (key.includes("obligacion"))return "O.N.";
-  if (key.includes("caucion"))   return "Cauciones";
-  if (key.includes("opcion"))    return "Opción";
-  return tipo;
 }
 
 function fmtVol(n: number) {

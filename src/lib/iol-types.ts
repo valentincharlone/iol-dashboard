@@ -166,12 +166,6 @@ export interface IOLPerfil {
   actualizarTestInversor: boolean;
 }
 
-export interface MarketStripItem {
-  label: string;
-  value: string;
-  variacion: number | null;
-}
-
 export interface IOLOperacion {
   numero: number;
   fechaOrden: string;

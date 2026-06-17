@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { DashboardPosicion } from "@/lib/iol-types";
 import { fmtMoney } from "@/lib/fmt";
+import { getTipoColor, getTipoLegendLabel } from "@/lib/instrument";
 
 interface Segment {
   tipo: string;
@@ -10,37 +11,6 @@ interface Segment {
   value: number;
   color: string;
   pct: number;
-}
-
-const TIPO_COLORS: [string, string][] = [
-  ["cedear", "#6366F1"],
-  ["accion", "#F97066"],
-  ["bono", "#14B8A6"],
-  ["fci", "#F59E0B"],
-  ["obligacion", "#8B5CF6"],
-  ["caucion", "#06B6D4"],
-  ["opcion", "#EC4899"],
-];
-
-const TIPO_LABELS: [string, string][] = [
-  ["cedear", "CEDEARs"],
-  ["accion", "Acciones"],
-  ["bono", "Títulos Públicos"],
-  ["fci", "FCI"],
-  ["obligacion", "O.N."],
-  ["caucion", "Cauciones"],
-  ["opcion", "Opciones"],
-];
-
-function getColor(tipo: string) {
-  const k = tipo.toLowerCase();
-  for (const [m, c] of TIPO_COLORS) if (k.includes(m)) return c;
-  return "#6B7280";
-}
-function getLabel(tipo: string) {
-  const k = tipo.toLowerCase();
-  for (const [m, l] of TIPO_LABELS) if (k.includes(m)) return l;
-  return tipo;
 }
 
 type ChartType = "donut" | "bar";
@@ -61,9 +31,9 @@ export function AllocationChart({
   const segments: Segment[] = Object.entries(byTipo)
     .map(([tipo, value]) => ({
       tipo,
-      label: getLabel(tipo),
+      label: getTipoLegendLabel(tipo),
       value,
-      color: getColor(tipo),
+      color: getTipoColor(tipo),
       pct: total > 0 ? (value / total) * 100 : 0,
     }))
     .sort((a, b) => b.value - a.value);
