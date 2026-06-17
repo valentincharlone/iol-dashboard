@@ -129,6 +129,10 @@ export async function getCotizacionesPortafolio(): Promise<CotizacionItem[]> {
     .sort((a, b) => b.variacionPorcentual - a.variacionPorcentual);
 }
 
-export async function getOperaciones(): Promise<IOLOperacion[]> {
-  return iolFetch<IOLOperacion[]>("/api/v2/operaciones");
+export async function getOperaciones(fechaDesde?: string, fechaHasta?: string): Promise<IOLOperacion[]> {
+  const params = new URLSearchParams();
+  if (fechaDesde) params.set("fechaDesde", fechaDesde);
+  if (fechaHasta) params.set("fechaHasta", fechaHasta);
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return iolFetch<IOLOperacion[]>(`/api/v2/operaciones${query}`);
 }

@@ -2,8 +2,11 @@ import { getOperaciones } from "@/lib/iol-actions";
 import { MovimientosTable } from "@/components/MovimientosTable";
 import { Suspense } from "react";
 
-async function MovimientosContent() {
-  const operaciones = await getOperaciones();
+type SearchParams = Promise<{ desde?: string; hasta?: string }>;
+
+async function MovimientosContent({ searchParams }: { searchParams: SearchParams }) {
+  const { desde, hasta } = await searchParams;
+  const operaciones = await getOperaciones(desde, hasta);
 
   return (
     <div style={{ padding: "24px", paddingBottom: 48, display: "flex", flexDirection: "column", gap: 20 }}>
@@ -16,12 +19,16 @@ async function MovimientosContent() {
         </p>
       </div>
 
-      <MovimientosTable operaciones={operaciones} />
+      <MovimientosTable
+        operaciones={operaciones}
+        defaultDesde={desde ?? ""}
+        defaultHasta={hasta ?? ""}
+      />
     </div>
   );
 }
 
-export default function MovimientosPage() {
+export default function MovimientosPage({ searchParams }: { searchParams: SearchParams }) {
   return (
     <Suspense
       fallback={
@@ -38,7 +45,7 @@ export default function MovimientosPage() {
         </div>
       }
     >
-      <MovimientosContent />
+      <MovimientosContent searchParams={searchParams} />
     </Suspense>
   );
 }

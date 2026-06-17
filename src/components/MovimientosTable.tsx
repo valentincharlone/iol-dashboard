@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import type { IOLOperacion } from "@/lib/iol-types";
 
 interface Props {
   operaciones: IOLOperacion[];
+  defaultDesde: string;
+  defaultHasta: string;
 }
 
 function fmtMoney(n: number, moneda?: string | null) {
@@ -50,12 +53,23 @@ function getEstadoStyle(estado: string) {
   return ESTADO_STYLE[estado.toLowerCase()] ?? { color: "var(--text-3)" };
 }
 
+type SortCol = "fecha" | "activo" | "total";
+type SortDir = "asc" | "desc";
+
 const TH: React.CSSProperties = {
   fontSize: 10, fontWeight: 600, color: "var(--text-3)",
   textTransform: "uppercase", letterSpacing: 0.6,
   padding: "10px 12px", borderBottom: "1px solid var(--border)",
   textAlign: "right", whiteSpace: "nowrap",
 };
+
+function SortIcon({ col, active, dir }: { col: string; active: boolean; dir: SortDir }) {
+  return (
+    <span style={{ marginLeft: 4, opacity: active ? 1 : 0.3, fontSize: 10 }}>
+      {active ? (dir === "asc" ? "↑" : "↓") : "↕"}
+    </span>
+  );
+}
 
 const PERIODOS = [
   { label: "1 mes",   days: 30 },
@@ -64,25 +78,66 @@ const PERIODOS = [
   { label: "Todo",    days: 0 },
 ];
 
+function toDateInput(d: Date) {
+  return d.toISOString().split("T")[0];
+}
 
-export function MovimientosTable({ operaciones }: Props) {
+export function MovimientosTable({ operaciones, defaultDesde, defaultHasta }: Props) {
+  const router = useRouter();
   const [tipoFiltro, setTipoFiltro] = useState<"todos" | "compra" | "venta">("todos");
-  const [periodo, setPeriodo] = useState(0); // índice de PERIODOS
+  const [activePeriod, setActivePeriod] = useState<number | null>(null);
+  const [desde, setDesde] = useState(defaultDesde);
+  const [hasta, setHasta] = useState(defaultHasta);
   const [search, setSearch] = useState("");
+  const [sortCol, setSortCol] = useState<SortCol>("fecha");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [hovRow, setHovRow] = useState<number | null>(null);
+
+  function toggleSort(col: SortCol) {
+    if (sortCol === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortCol(col);
+      setSortDir(col === "fecha" ? "desc" : "asc");
+    }
+  }
+
+  function applyPeriod(idx: number) {
+    setActivePeriod(idx);
+    const { days } = PERIODOS[idx];
+    const newDesde = days === 0 ? "" : toDateInput(new Date(Date.now() - days * 86_400_000));
+    setDesde(newDesde);
+    setHasta("");
+    const params = new URLSearchParams();
+    if (newDesde) params.set("desde", newDesde);
+    router.push(`/dashboard/movimientos?${params.toString()}`);
+  }
+
+  function buscar() {
+    setActivePeriod(null);
+    const params = new URLSearchParams();
+    if (desde) params.set("desde", desde);
+    if (hasta) params.set("hasta", hasta);
+    router.push(`/dashboard/movimientos?${params.toString()}`);
+  }
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const days = PERIODOS[periodo].days;
-    const cutoff = days > 0 ? Date.now() - days * 86_400_000 : 0;
-
-    return operaciones.filter((op) => {
+    const rows = operaciones.filter((op) => {
       if (tipoFiltro !== "todos" && op.tipo.toLowerCase() !== tipoFiltro) return false;
-      if (cutoff > 0 && new Date(op.fechaOrden).getTime() < cutoff) return false;
       if (q && !op.simbolo.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [operaciones, tipoFiltro, periodo, search]);
+
+    const mul = sortDir === "asc" ? 1 : -1;
+    rows.sort((a, b) => {
+      if (sortCol === "fecha") return mul * (new Date(a.fechaOrden).getTime() - new Date(b.fechaOrden).getTime());
+      if (sortCol === "activo") return mul * a.simbolo.localeCompare(b.simbolo);
+      if (sortCol === "total") return mul * ((a.montoOperado || a.monto || 0) - (b.montoOperado || b.monto || 0));
+      return 0;
+    });
+    return rows;
+  }, [operaciones, tipoFiltro, search, sortCol, sortDir]);
 
   const tdBase: React.CSSProperties = {
     padding: "12px 12px", borderBottom: "1px solid #F5F7FB",
@@ -118,10 +173,45 @@ export function MovimientosTable({ operaciones }: Props) {
           </div>
           <div style={{ display: "flex", gap: 4 }}>
             {PERIODOS.map((p, idx) => (
-              <button key={p.label} onClick={() => setPeriodo(idx)} style={filterBtn(periodo === idx)}>
+              <button key={p.label} onClick={() => applyPeriod(idx)} style={filterBtn(activePeriod === idx)}>
                 {p.label}
               </button>
             ))}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <input
+              type="date"
+              value={desde}
+              onChange={(e) => setDesde(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && buscar()}
+              style={{
+                fontSize: 12, padding: "5px 8px", borderRadius: 8,
+                border: "1px solid var(--border)", outline: "none",
+                fontFamily: "inherit", color: desde ? "var(--text-1)" : "var(--text-3)",
+              }}
+            />
+            <span style={{ fontSize: 12, color: "var(--text-3)" }}>—</span>
+            <input
+              type="date"
+              value={hasta}
+              onChange={(e) => setHasta(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && buscar()}
+              style={{
+                fontSize: 12, padding: "5px 8px", borderRadius: 8,
+                border: "1px solid var(--border)", outline: "none",
+                fontFamily: "inherit", color: hasta ? "var(--text-1)" : "var(--text-3)",
+              }}
+            />
+            <button
+              onClick={buscar}
+              style={{
+                padding: "5px 14px", borderRadius: 6, fontSize: 12, fontWeight: 600,
+                cursor: "pointer", border: "1px solid #C7D2FE", fontFamily: "inherit",
+                background: "#EEF2FF", color: "#4338CA",
+              }}
+            >
+              Buscar
+            </button>
           </div>
           <input
             type="text"
@@ -131,7 +221,7 @@ export function MovimientosTable({ operaciones }: Props) {
             style={{
               fontSize: 13, padding: "5px 12px", borderRadius: 8,
               border: "1px solid var(--border)", outline: "none",
-              fontFamily: "inherit", color: "var(--text-1)", width: 160,
+              fontFamily: "inherit", color: "var(--text-1)", width: 140,
             }}
           />
         </div>
@@ -141,12 +231,27 @@ export function MovimientosTable({ operaciones }: Props) {
         <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 760 }}>
           <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "white" }}>
             <tr>
-              <th style={{ ...TH, textAlign: "left", paddingLeft: 20 }}>Fecha</th>
+              <th
+                onClick={() => toggleSort("fecha")}
+                style={{ ...TH, textAlign: "left", paddingLeft: 20, cursor: "pointer", userSelect: "none" }}
+              >
+                Fecha <SortIcon col="fecha" active={sortCol === "fecha"} dir={sortDir} />
+              </th>
               <th style={{ ...TH, textAlign: "left" }}>Tipo</th>
-              <th style={{ ...TH, textAlign: "left" }}>Activo</th>
+              <th
+                onClick={() => toggleSort("activo")}
+                style={{ ...TH, textAlign: "left", cursor: "pointer", userSelect: "none" }}
+              >
+                Activo <SortIcon col="activo" active={sortCol === "activo"} dir={sortDir} />
+              </th>
               <th style={TH}>Cantidad</th>
               <th style={TH}>Precio</th>
-              <th style={TH}>Total</th>
+              <th
+                onClick={() => toggleSort("total")}
+                style={{ ...TH, cursor: "pointer", userSelect: "none" }}
+              >
+                Total <SortIcon col="total" active={sortCol === "total"} dir={sortDir} />
+              </th>
               <th style={{ ...TH, paddingRight: 20 }}>Estado</th>
             </tr>
           </thead>
