@@ -89,7 +89,11 @@ export interface IOLCuenta {
 
 export interface IOLEstadoCuenta {
   cuentas: IOLCuenta[];
-  estadisticas: Array<{ descripcion: string; cantidad: number; volumen: number }>;
+  estadisticas: Array<{
+    descripcion: string;
+    cantidad: number;
+    volumen: number;
+  }>;
   totalEnPesos: number;
 }
 
@@ -116,12 +120,12 @@ export interface DashboardData {
 // Respuesta real de GET /api/v2/{mercado}/Titulos/{simbolo}/Cotizacion — estructura plana
 export interface IOLCotizacionResponse {
   ultimoPrecio: number;
-  variacion: number;         // % de variación diaria
+  variacion: number; // % de variación diaria
   apertura: number;
   maximo: number;
   minimo: number;
   fechaHora: string;
-  tendencia: string;         // "sube" | "baja" | "mantiene"
+  tendencia: string; // "sube" | "baja" | "mantiene"
   cierreAnterior: number;
   montoOperado: number;
   volumenNominal: number;

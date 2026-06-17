@@ -1,29 +1,7 @@
 import { getPortafolio } from "@/lib/iol-actions";
 import { HoldingsTable } from "@/components/HoldingsTable";
 import { AllocationChart } from "@/components/AllocationChart";
-
-function fmtMoney(n: number) {
-  return "$" + Math.round(n).toLocaleString("es-AR");
-}
-function fmtUSD(n: number) {
-  return (
-    "US$" +
-    n.toLocaleString("es-AR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
-  );
-}
-function fmtPct(n: number) {
-  return (
-    (n >= 0 ? "+" : "-") +
-    Math.abs(n).toLocaleString("es-AR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }) +
-    "%"
-  );
-}
+import { fmtMoney, fmtUSD, fmtPct } from "@/lib/fmt";
 
 export default async function DashboardContent() {
   const {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { Menu } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
@@ -35,7 +36,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-bg">
-
       {/* Backdrop mobile */}
       {isMobile && mobileOpen && (
         <div
@@ -45,13 +45,20 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Sidebar */}
-      <div className={isMobile
-        ? `fixed top-0 left-0 h-screen z-40 transition-transform duration-250 ease-in-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`
-        : ""
-      }>
+      <div
+        className={
+          isMobile
+            ? `fixed top-0 left-0 h-screen z-40 transition-transform duration-250 ease-in-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`
+            : ""
+        }
+      >
         <Sidebar
           collapsed={isMobile ? false : collapsed}
-          onToggle={isMobile ? () => setMobileOpen(false) : () => setCollapsed((c) => !c)}
+          onToggle={
+            isMobile
+              ? () => setMobileOpen(false)
+              : () => setCollapsed((c) => !c)
+          }
           isMobile={isMobile}
         />
       </div>
@@ -65,14 +72,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               onClick={() => setMobileOpen(true)}
               className="p-1 text-text2 flex"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-              </svg>
+              <Menu size={22} />
             </button>
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand to-brand-light flex items-center justify-center text-white font-bold text-[11px]">
               IOL
             </div>
-            <span className="font-semibold text-[15px] text-text1">Dashboard</span>
+            <span className="font-semibold text-[15px] text-text1">
+              Dashboard
+            </span>
           </div>
         )}
         {children}

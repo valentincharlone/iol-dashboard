@@ -22,8 +22,18 @@ export default function CotizacionesLoading() {
             <thead>
               <tr>
                 {COLS.map((w, i) => (
-                  <th key={i} className={`py-2.5 px-3 border-b border-border ${i === 0 ? "pl-5 text-left" : "text-right"}`}>
-                    <div className="shimmer" style={{ height: 10, width: w, marginLeft: i === 0 ? 0 : "auto" }} />
+                  <th
+                    key={i}
+                    className={`py-2.5 px-3 border-b border-border ${i === 0 ? "pl-5 text-left" : "text-right"}`}
+                  >
+                    <div
+                      className="shimmer"
+                      style={{
+                        height: 10,
+                        width: w,
+                        marginLeft: i === 0 ? 0 : "auto",
+                      }}
+                    />
                   </th>
                 ))}
               </tr>
@@ -36,8 +46,14 @@ export default function CotizacionesLoading() {
                     <div className="shimmer h-[11px] w-28" />
                   </td>
                   {COLS.slice(1).map((w, j) => (
-                    <td key={j} className="px-3 py-3 border-b border-[#F5F7FB] text-right">
-                      <div className="shimmer ml-auto" style={{ height: 14, width: parseInt(w) * 0.6 }} />
+                    <td
+                      key={j}
+                      className="px-3 py-3 border-b border-[#F5F7FB] text-right"
+                    >
+                      <div
+                        className="shimmer ml-auto"
+                        style={{ height: 14, width: parseInt(w) * 0.6 }}
+                      />
                     </td>
                   ))}
                 </tr>

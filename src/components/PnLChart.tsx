@@ -39,7 +39,11 @@ export function PnLChart({ posiciones }: Props) {
         data={data}
         margin={{ top: 4, right: 52, left: 0, bottom: 4 }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke="#1e293b"
+          horizontal={false}
+        />
         <XAxis
           type="number"
           tick={{ fontSize: 10, fill: "#475569" }}

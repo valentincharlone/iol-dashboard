@@ -16,9 +16,16 @@ export default function MovimientosLoading() {
           </div>
           <div className="flex gap-2 items-center flex-wrap">
             {[70, 70, 70, 60, 70, 80, 80].map((w, i) => (
-              <div key={i} className="shimmer rounded-md" style={{ height: 30, width: w }} />
+              <div
+                key={i}
+                className="shimmer rounded-md"
+                style={{ height: 30, width: w }}
+              />
             ))}
-            <div className="shimmer rounded-lg" style={{ height: 30, width: 100 }} />
+            <div
+              className="shimmer rounded-lg"
+              style={{ height: 30, width: 100 }}
+            />
           </div>
         </div>
 
@@ -27,8 +34,18 @@ export default function MovimientosLoading() {
             <thead>
               <tr>
                 {COLS.map((w, i) => (
-                  <th key={i} className={`py-2.5 px-3 border-b border-border ${i === 0 ? "pl-5" : ""} ${i === COLS.length - 1 ? "pr-5" : ""} ${i < 3 ? "text-left" : "text-right"}`}>
-                    <div className="shimmer" style={{ height: 10, width: w, marginLeft: i < 3 ? 0 : "auto" }} />
+                  <th
+                    key={i}
+                    className={`py-2.5 px-3 border-b border-border ${i === 0 ? "pl-5" : ""} ${i === COLS.length - 1 ? "pr-5" : ""} ${i < 3 ? "text-left" : "text-right"}`}
+                  >
+                    <div
+                      className="shimmer"
+                      style={{
+                        height: 10,
+                        width: w,
+                        marginLeft: i < 3 ? 0 : "auto",
+                      }}
+                    />
                   </th>
                 ))}
               </tr>
@@ -47,8 +64,14 @@ export default function MovimientosLoading() {
                     <div className="shimmer h-[11px] w-9" />
                   </td>
                   {[50, 80, 90, 60].map((w, j) => (
-                    <td key={j} className={`px-3 py-3 border-b border-[#F5F7FB] text-right ${j === 3 ? "pr-5" : ""}`}>
-                      <div className="shimmer ml-auto" style={{ height: 14, width: w }} />
+                    <td
+                      key={j}
+                      className={`px-3 py-3 border-b border-[#F5F7FB] text-right ${j === 3 ? "pr-5" : ""}`}
+                    >
+                      <div
+                        className="shimmer ml-auto"
+                        style={{ height: 14, width: w }}
+                      />
                     </td>
                   ))}
                 </tr>

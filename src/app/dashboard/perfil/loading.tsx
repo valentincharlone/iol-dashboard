@@ -17,7 +17,10 @@ export default function PerfilLoading() {
             </div>
           </div>
           {[140, 80, 160, 180].map((w, i) => (
-            <div key={i} className="flex justify-between py-3.5 border-b border-[#F5F7FB]">
+            <div
+              key={i}
+              className="flex justify-between py-3.5 border-b border-[#F5F7FB]"
+            >
               <div className="shimmer h-3 w-24" />
               <div className="shimmer h-3" style={{ width: w }} />
             </div>

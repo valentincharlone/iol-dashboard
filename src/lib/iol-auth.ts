@@ -40,7 +40,10 @@ async function writeTokensToFile(tokens: IOLTokens): Promise<void> {
 /**
  * Obtiene un par de tokens frescos usando usuario + contraseña.
  */
-async function fetchTokens(username: string, password: string): Promise<IOLTokens> {
+async function fetchTokens(
+  username: string,
+  password: string,
+): Promise<IOLTokens> {
   const body = new URLSearchParams({
     username,
     password,
@@ -117,7 +120,9 @@ export async function getValidToken(): Promise<string> {
   const password = process.env.IOL_PASSWORD;
 
   if (!username || !password) {
-    throw new Error("Faltan IOL_USERNAME o IOL_PASSWORD en las variables de entorno.");
+    throw new Error(
+      "Faltan IOL_USERNAME o IOL_PASSWORD en las variables de entorno.",
+    );
   }
 
   // 1. Memoria
@@ -146,7 +151,9 @@ export async function getValidToken(): Promise<string> {
     } else {
       inflightFetch = fetchTokens(username, password);
     }
-    inflightFetch = inflightFetch.finally(() => { inflightFetch = null; });
+    inflightFetch = inflightFetch.finally(() => {
+      inflightFetch = null;
+    });
   }
 
   cachedTokens = await inflightFetch;

@@ -2,14 +2,27 @@
 
 import { getValidToken, invalidateTokens } from "./iol-auth";
 import type {
-  IOLPortafolio, IOLEstadoCuenta, DashboardData, DashboardPosicion, EstadoCuenta,
-  IOLCotizacionResponse, CotizacionItem, IOLOperacion, IOLPerfil, MarketStripItem,
+  IOLPortafolio,
+  IOLEstadoCuenta,
+  DashboardData,
+  DashboardPosicion,
+  EstadoCuenta,
+  IOLCotizacionResponse,
+  CotizacionItem,
+  IOLOperacion,
+  IOLPerfil,
+  MarketStripItem,
 } from "./iol-types";
 
 const IOL_API_BASE = "https://api.invertironline.com";
 
 const MERCADO_MAP: Record<string, string> = {
-  bcba: "bCBA", nyse: "nYSE", nasdaq: "nASDAQ", amex: "aMEX", rofx: "rOFX", bcs: "bCS",
+  bcba: "bCBA",
+  nyse: "nYSE",
+  nasdaq: "nASDAQ",
+  amex: "aMEX",
+  rofx: "rOFX",
+  bcs: "bCS",
 };
 function normalizeMercado(m: string): string {
   return MERCADO_MAP[m?.toLowerCase()] ?? m ?? "bCBA";
@@ -18,7 +31,10 @@ function normalizeMercado(m: string): string {
 async function iolFetch<T>(path: string, retry = true): Promise<T> {
   const token = await getValidToken();
   const res = await fetch(`${IOL_API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
     cache: "no-store",
   });
   if (res.status === 401 && retry) {
@@ -50,30 +66,41 @@ export async function getPortafolio(): Promise<DashboardData> {
       const mercado = normalizeMercado(a.titulo.mercado);
       const simbolo = encodeURIComponent(a.titulo.simbolo);
       const cot = await iolFetch<IOLCotizacionResponse>(
-        `/api/v2/${mercado}/Titulos/${simbolo}/Cotizacion`
+        `/api/v2/${mercado}/Titulos/${simbolo}/Cotizacion`,
       );
-      const variacion = cot.variacion !== 0
-        ? cot.variacion
-        : cot.cierreAnterior > 0 ? ((cot.ultimoPrecio - cot.cierreAnterior) / cot.cierreAnterior) * 100 : 0;
+      const variacion =
+        cot.variacion !== 0
+          ? cot.variacion
+          : cot.cierreAnterior > 0
+            ? ((cot.ultimoPrecio - cot.cierreAnterior) / cot.cierreAnterior) *
+              100
+            : 0;
       return { ticker: a.titulo.simbolo, variacion };
-    })
+    }),
   );
 
   const variacionMap = new Map<string, number>();
   for (const r of cotizResults) {
-    if (r.status === "fulfilled") variacionMap.set(r.value.ticker, r.value.variacion);
+    if (r.status === "fulfilled")
+      variacionMap.set(r.value.ticker, r.value.variacion);
   }
 
   const posiciones: DashboardPosicion[] = activos.map((a) => {
-    const valorizado = a.valorizado ?? (a.cantidad * a.ultimoPrecio);
+    const valorizado = a.valorizado ?? a.cantidad * a.ultimoPrecio;
     const ppc = a.ppc ?? 0;
     const costoPos = a.cantidad * ppc;
-    const pnlPesos = (a.gananciaDinero != null && !isNaN(a.gananciaDinero))
-      ? a.gananciaDinero
-      : costoPos > 0 ? valorizado - costoPos : 0;
-    const pnlPorcentaje = (a.gananciaPorcentaje != null && !isNaN(a.gananciaPorcentaje))
-      ? a.gananciaPorcentaje
-      : costoPos > 0 ? ((valorizado - costoPos) / costoPos) * 100 : 0;
+    const pnlPesos =
+      a.gananciaDinero != null && !isNaN(a.gananciaDinero)
+        ? a.gananciaDinero
+        : costoPos > 0
+          ? valorizado - costoPos
+          : 0;
+    const pnlPorcentaje =
+      a.gananciaPorcentaje != null && !isNaN(a.gananciaPorcentaje)
+        ? a.gananciaPorcentaje
+        : costoPos > 0
+          ? ((valorizado - costoPos) / costoPos) * 100
+          : 0;
     return {
       ticker: a.titulo.simbolo,
       nombre: a.titulo.descripcion,
@@ -84,22 +111,41 @@ export async function getPortafolio(): Promise<DashboardData> {
       valuacion: valorizado,
       pnlPesos,
       pnlPorcentaje,
-      variacionDiaria: variacionMap.get(a.titulo.simbolo) ?? a.variacionDiaria ?? 0,
+      variacionDiaria:
+        variacionMap.get(a.titulo.simbolo) ?? a.variacionDiaria ?? 0,
     };
   });
 
   posiciones.sort((a, b) => b.valuacion - a.valuacion);
 
-  const totalValuacion = posiciones.reduce((acc, p) => acc + (isFinite(p.valuacion) ? p.valuacion : 0), 0);
-  const totalPnlPesos = posiciones.reduce((acc, p) => acc + (isFinite(p.pnlPesos) ? p.pnlPesos : 0), 0);
+  const totalValuacion = posiciones.reduce(
+    (acc, p) => acc + (isFinite(p.valuacion) ? p.valuacion : 0),
+    0,
+  );
+  const totalPnlPesos = posiciones.reduce(
+    (acc, p) => acc + (isFinite(p.pnlPesos) ? p.pnlPesos : 0),
+    0,
+  );
   const costoTotal = totalValuacion - totalPnlPesos;
-  const totalPnlPorcentaje = costoTotal > 0 ? (totalPnlPesos / costoTotal) * 100 : 0;
+  const totalPnlPorcentaje =
+    costoTotal > 0 ? (totalPnlPesos / costoTotal) * 100 : 0;
   // Promedio ponderado por valuación — evita sumar porcentajes de distintas posiciones
-  const variacionHoy = totalValuacion > 0
-    ? posiciones.reduce((acc, p) => acc + (isFinite(p.variacionDiaria) ? p.variacionDiaria * p.valuacion : 0), 0) / totalValuacion
-    : 0;
+  const variacionHoy =
+    totalValuacion > 0
+      ? posiciones.reduce(
+          (acc, p) =>
+            acc +
+            (isFinite(p.variacionDiaria) ? p.variacionDiaria * p.valuacion : 0),
+          0,
+        ) / totalValuacion
+      : 0;
   const variacionHoyPesos = posiciones.reduce(
-    (acc, p) => acc + (isFinite(p.variacionDiaria) && isFinite(p.valuacion) ? p.valuacion * p.variacionDiaria / 100 : 0), 0
+    (acc, p) =>
+      acc +
+      (isFinite(p.variacionDiaria) && isFinite(p.valuacion)
+        ? (p.valuacion * p.variacionDiaria) / 100
+        : 0),
+    0,
   );
 
   let estadoCuenta: EstadoCuenta | null = null;
@@ -112,25 +158,40 @@ export async function getPortafolio(): Promise<DashboardData> {
       disponibleARS: cuentaARS?.disponible ?? 0,
       disponibleUSD: cuentaUSD?.disponible ?? 0,
       // totalEnPesos es el grand total real (efectivo + títulos) en pesos
-      totalConEfectivo: ec.totalEnPesos ?? totalValuacion + (cuentaARS?.disponible ?? 0),
+      totalConEfectivo:
+        ec.totalEnPesos ?? totalValuacion + (cuentaARS?.disponible ?? 0),
       // estadocuenta no devuelve ganancia/%; usamos los calculados del portafolio
       gananciaTotalPesos: totalPnlPesos,
       gananciaTotalPorcentaje: totalPnlPorcentaje,
     };
   }
 
-  return { posiciones, totalValuacion, costoTotal, totalPnlPesos, totalPnlPorcentaje, variacionHoy, variacionHoyPesos, cantidadPosiciones: posiciones.length, estadoCuenta };
+  return {
+    posiciones,
+    totalValuacion,
+    costoTotal,
+    totalPnlPesos,
+    totalPnlPorcentaje,
+    variacionHoy,
+    variacionHoyPesos,
+    cantidadPosiciones: posiciones.length,
+    estadoCuenta,
+  };
 }
 
 export async function getCotizacionesPortafolio(): Promise<CotizacionItem[]> {
-  const portafolio = await iolFetch<IOLPortafolio>("/api/v2/portafolio/argentina");
+  const portafolio = await iolFetch<IOLPortafolio>(
+    "/api/v2/portafolio/argentina",
+  );
   const activos = portafolio.activos ?? [];
 
   const results = await Promise.allSettled(
     activos.map(async (a) => {
       const mercado = normalizeMercado(a.titulo.mercado);
       const simbolo = encodeURIComponent(a.titulo.simbolo);
-      const data = await iolFetch<IOLCotizacionResponse>(`/api/v2/${mercado}/Titulos/${simbolo}/Cotizacion`);
+      const data = await iolFetch<IOLCotizacionResponse>(
+        `/api/v2/${mercado}/Titulos/${simbolo}/Cotizacion`,
+      );
       return {
         ticker: a.titulo.simbolo,
         nombre: a.titulo.descripcion,
@@ -148,11 +209,14 @@ export async function getCotizacionesPortafolio(): Promise<CotizacionItem[]> {
         moneda: data.moneda,
         tendencia: data.tendencia,
       } satisfies CotizacionItem;
-    })
+    }),
   );
 
   return results
-    .filter((r): r is PromiseFulfilledResult<CotizacionItem> => r.status === "fulfilled")
+    .filter(
+      (r): r is PromiseFulfilledResult<CotizacionItem> =>
+        r.status === "fulfilled",
+    )
     .map((r) => r.value)
     .sort((a, b) => b.variacionPorcentual - a.variacionPorcentual);
 }
@@ -175,7 +239,11 @@ export async function getMarketStrip(): Promise<MarketStripItem[]> {
     items.push({
       label: "S&P Merval",
       value: "$" + Math.round(d.ultimoPrecio).toLocaleString("es-AR"),
-      variacion: d.variacion ?? (d.cierreAnterior > 0 ? ((d.ultimoPrecio - d.cierreAnterior) / d.cierreAnterior) * 100 : null),
+      variacion:
+        d.variacion ??
+        (d.cierreAnterior > 0
+          ? ((d.ultimoPrecio - d.cierreAnterior) / d.cierreAnterior) * 100
+          : null),
     });
   }
 
@@ -184,7 +252,11 @@ export async function getMarketStrip(): Promise<MarketStripItem[]> {
     items.push({
       label: "SPY (S&P 500)",
       value: "$" + Math.round(d.ultimoPrecio).toLocaleString("es-AR"),
-      variacion: d.variacion ?? (d.cierreAnterior > 0 ? ((d.ultimoPrecio - d.cierreAnterior) / d.cierreAnterior) * 100 : null),
+      variacion:
+        d.variacion ??
+        (d.cierreAnterior > 0
+          ? ((d.ultimoPrecio - d.cierreAnterior) / d.cierreAnterior) * 100
+          : null),
     });
   }
 
@@ -199,7 +271,10 @@ export async function getMarketStrip(): Promise<MarketStripItem[]> {
   return items;
 }
 
-export async function getOperaciones(fechaDesde?: string, fechaHasta?: string): Promise<IOLOperacion[]> {
+export async function getOperaciones(
+  fechaDesde?: string,
+  fechaHasta?: string,
+): Promise<IOLOperacion[]> {
   const params = new URLSearchParams();
   if (fechaDesde) params.set("fechaDesde", fechaDesde);
   if (fechaHasta) params.set("fechaHasta", fechaHasta);

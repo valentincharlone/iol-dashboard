@@ -85,7 +85,10 @@ export default function LoginPage() {
             padding: "32px 28px",
           }}
         >
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: 16 }}
+          >
             <div>
               <label
                 style={{

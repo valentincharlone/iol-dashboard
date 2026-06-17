@@ -1,5 +1,15 @@
-function Sk({ w, h = 13, className = "" }: { w: number | string; h?: number; className?: string }) {
-  return <div className={`shimmer ${className}`} style={{ height: h, width: w }} />;
+function Sk({
+  w,
+  h = 13,
+  className = "",
+}: {
+  w: number | string;
+  h?: number;
+  className?: string;
+}) {
+  return (
+    <div className={`shimmer ${className}`} style={{ height: h, width: w }} />
+  );
 }
 
 const card = "bg-white rounded-card shadow-card";
@@ -7,7 +17,6 @@ const card = "bg-white rounded-card shadow-card";
 export default function DashboardLoading() {
   return (
     <div className="p-4 pb-12 md:p-6 md:pb-16 flex flex-col gap-4 md:gap-5">
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1.5">
@@ -32,7 +41,10 @@ export default function DashboardLoading() {
           [90, 28, 70],
           [70, 28, 50],
         ].map(([lw, vh, vw], i) => (
-          <div key={i} className={`${card} p-5 flex flex-col gap-2 ${i === 2 ? "col-span-2 md:col-span-1" : ""}`}>
+          <div
+            key={i}
+            className={`${card} p-5 flex flex-col gap-2 ${i === 2 ? "col-span-2 md:col-span-1" : ""}`}
+          >
             <Sk w={lw} h={10} />
             <Sk w={vw} h={vh} />
             <Sk w={80} h={12} />
@@ -88,15 +100,27 @@ export default function DashboardLoading() {
               <Sk w={80} h={12} />
             </div>
             <div className="flex gap-1.5">
-              {[36, 36, 36, 140].map((w, i) => <Sk key={i} w={w} h={28} />)}
+              {[36, 36, 36, 140].map((w, i) => (
+                <Sk key={i} w={w} h={28} />
+              ))}
             </div>
           </div>
           <table className="w-full border-collapse">
             <thead>
               <tr>
                 {[160, 70, 70, 80, 80, 80, 70].map((w, i) => (
-                  <th key={i} className={`py-2.5 px-3 border-b border-border ${i === 0 ? "pl-5" : ""} ${i === 6 ? "pr-5" : ""}`}>
-                    <div className="shimmer" style={{ height: 10, width: w, marginLeft: i === 0 ? 0 : "auto" }} />
+                  <th
+                    key={i}
+                    className={`py-2.5 px-3 border-b border-border ${i === 0 ? "pl-5" : ""} ${i === 6 ? "pr-5" : ""}`}
+                  >
+                    <div
+                      className="shimmer"
+                      style={{
+                        height: 10,
+                        width: w,
+                        marginLeft: i === 0 ? 0 : "auto",
+                      }}
+                    />
                   </th>
                 ))}
               </tr>
@@ -109,8 +133,14 @@ export default function DashboardLoading() {
                     <Sk w={110} h={11} />
                   </td>
                   {[50, 60, 70, 65, 65, 55].map((w, j) => (
-                    <td key={j} className={`px-3 py-3 border-b border-[#F5F7FB] text-right ${j === 5 ? "pr-5" : ""}`}>
-                      <div className="shimmer ml-auto" style={{ height: 14, width: w }} />
+                    <td
+                      key={j}
+                      className={`px-3 py-3 border-b border-[#F5F7FB] text-right ${j === 5 ? "pr-5" : ""}`}
+                    >
+                      <div
+                        className="shimmer ml-auto"
+                        style={{ height: 14, width: w }}
+                      />
                     </td>
                   ))}
                 </tr>
