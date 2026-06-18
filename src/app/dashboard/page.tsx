@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { getPortafolio } from "@/lib/iol-actions";
 import { HoldingsTable } from "@/components/HoldingsTable";
 import { AllocationChart } from "@/components/AllocationChart";
+import { Private } from "@/components/Private";
 import { fmtMoney, fmtUSD, fmtPct } from "@/lib/fmt";
 
 export default async function DashboardContent() {
@@ -52,17 +53,17 @@ export default async function DashboardContent() {
               Valuación de títulos
             </div>
             <div className="text-[26px] font-bold tabular-nums tracking-tight">
-              {fmtMoney(totalValuacion)}
+              <Private>{fmtMoney(totalValuacion)}</Private>
             </div>
             <div className="flex flex-wrap gap-3 md:gap-4 mt-2">
               <div className="text-[12px] opacity-65">
                 <span className="opacity-80">Invertido </span>
-                {fmtMoney(costoTotal)}
+                <Private>{fmtMoney(costoTotal)}</Private>
               </div>
               {estadoCuenta && (
                 <div className="text-[12px] opacity-65">
                   <span className="opacity-80">Con efectivo </span>
-                  {fmtMoney(estadoCuenta.totalConEfectivo)}
+                  <Private>{fmtMoney(estadoCuenta.totalConEfectivo)}</Private>
                 </div>
               )}
               <div className="text-[12px] opacity-65">
@@ -85,8 +86,10 @@ export default async function DashboardContent() {
           <div
             className={`text-[12px] mt-0.5 tabular-nums ${pct >= 0 ? "text-profit" : "text-loss"}`}
           >
-            {pesos >= 0 ? "+" : ""}
-            {fmtMoney(pesos)}
+            <Private>
+              {pesos >= 0 ? "+" : ""}
+              {fmtMoney(pesos)}
+            </Private>
           </div>
         </div>
 
@@ -103,8 +106,10 @@ export default async function DashboardContent() {
           <div
             className={`text-[12px] mt-0.5 tabular-nums ${variacionHoy >= 0 ? "text-profit" : "text-loss"}`}
           >
-            {variacionHoyPesos >= 0 ? "+" : ""}
-            {fmtMoney(variacionHoyPesos)}
+            <Private>
+              {variacionHoyPesos >= 0 ? "+" : ""}
+              {fmtMoney(variacionHoyPesos)}
+            </Private>
           </div>
         </div>
 
@@ -116,8 +121,16 @@ export default async function DashboardContent() {
           {estadoCuenta ? (
             <div className="flex flex-col gap-2">
               {[
-                { label: "ARS", value: fmtMoney(estadoCuenta.disponibleARS) },
-                { label: "USD", value: fmtUSD(estadoCuenta.disponibleUSD) },
+                {
+                  label: "ARS",
+                  value: fmtMoney(estadoCuenta.disponibleARS),
+                  prefix: "$",
+                },
+                {
+                  label: "USD",
+                  value: fmtUSD(estadoCuenta.disponibleUSD),
+                  prefix: "US$",
+                },
               ].map((r) => (
                 <div key={r.label} className="flex items-baseline gap-1.5">
                   <span className="text-[10px] text-text3 font-semibold min-w-[24px]">
@@ -169,8 +182,10 @@ export default async function DashboardContent() {
                       {fmtPct(p.variacionDiaria)}
                     </span>
                     <div className="text-[10px] text-text3 tabular-nums">
-                      {p.variacionDiaria >= 0 ? "+" : ""}
-                      {fmtMoney((p.valuacion * p.variacionDiaria) / 100)}
+                      <Private>
+                        {p.variacionDiaria >= 0 ? "+" : ""}
+                        {fmtMoney((p.valuacion * p.variacionDiaria) / 100)}
+                      </Private>
                     </div>
                   </div>
                 </div>

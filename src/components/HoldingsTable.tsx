@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import type { DashboardPosicion } from "@/lib/iol-types";
 import { fmtMoney, fmtPct } from "@/lib/fmt";
 import { getBadge, tipoLabel } from "@/lib/instrument";
+import { Private } from "./Private";
 
 interface Props {
   posiciones: DashboardPosicion[];
@@ -264,7 +265,7 @@ export function HoldingsTable({ posiciones, totalValuacion }: Props) {
 
                   {col("cantidad") && (
                     <td className={tdCls}>
-                      {p.cantidad.toLocaleString("es-AR")}
+                      <Private prefix=" ">{p.cantidad.toLocaleString("es-AR")}</Private>
                     </td>
                   )}
                   {col("precio") && (
@@ -275,7 +276,7 @@ export function HoldingsTable({ posiciones, totalValuacion }: Props) {
                   )}
                   {col("valuacion") && (
                     <td className={`${tdCls} font-bold`}>
-                      {fmtMoney(p.valuacion)}
+                      <Private>{fmtMoney(p.valuacion)}</Private>
                     </td>
                   )}
 
@@ -289,8 +290,7 @@ export function HoldingsTable({ posiciones, totalValuacion }: Props) {
                       <div
                         className={`text-[10px] opacity-65 ${isPos ? "text-profit" : "text-loss"}`}
                       >
-                        {p.pnlPesos >= 0 ? "+" : ""}
-                        {fmtMoney(p.pnlPesos)}
+                        <Private>{p.pnlPesos >= 0 ? "+" : ""}{fmtMoney(p.pnlPesos)}</Private>
                       </div>
                     </td>
                   )}

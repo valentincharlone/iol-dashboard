@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { Menu, Eye, EyeOff } from "lucide-react";
 import { Sidebar } from "./Sidebar";
+import { usePrivacy } from "@/lib/privacy-context";
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
+  const { privacy, toggle } = usePrivacy();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -80,6 +82,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <span className="font-semibold text-[15px] text-text1">
               Dashboard
             </span>
+            <button onClick={toggle} className="ml-auto p-1 text-text3 hover:text-text1 transition-colors">
+              {privacy ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
         )}
         {children}

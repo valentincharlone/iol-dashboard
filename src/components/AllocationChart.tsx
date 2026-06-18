@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { DashboardPosicion } from "@/lib/iol-types";
 import { fmtMoney } from "@/lib/fmt";
 import { getTipoColor, getTipoLegendLabel } from "@/lib/instrument";
+import { Private } from "./Private";
 
 interface Segment {
   tipo: string;
@@ -110,7 +111,7 @@ function DonutChart({
         </svg>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center whitespace-nowrap">
           <div className="text-[20px] font-bold text-text1 tabular-nums tracking-tight">
-            {fmtMoney(total)}
+            <Private>{fmtMoney(total)}</Private>
           </div>
           <div className="text-[11px] font-medium text-text3 uppercase tracking-widest mt-0.5">
             Títulos
@@ -172,7 +173,7 @@ function Legend({ segments }: { segments: Segment[] }) {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[13px] font-semibold tabular-nums">
-              {fmtMoney(seg.value)}
+              <Private>{fmtMoney(seg.value)}</Private>
             </span>
             <span className="text-[12px] text-text3 tabular-nums min-w-[40px] text-right">
               {seg.pct.toFixed(1)}%

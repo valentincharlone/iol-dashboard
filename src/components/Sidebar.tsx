@@ -12,7 +12,10 @@ import {
   X,
   LogOut,
   PanelLeft,
+  Eye,
+  EyeOff,
 } from "lucide-react";
+import { usePrivacy } from "@/lib/privacy-context";
 
 const NAV_MAIN = [
   { href: "/dashboard", label: "Portafolio", icon: <PieChart size={18} /> },
@@ -39,6 +42,7 @@ interface Props {
 
 export function Sidebar({ collapsed, onToggle, isMobile }: Props) {
   const pathname = usePathname();
+  const { privacy, toggle: togglePrivacy } = usePrivacy();
   const w = collapsed ? "w-16 min-w-16" : "w-[220px] min-w-[220px]";
 
   function isActive(href: string) {
@@ -135,8 +139,24 @@ export function Sidebar({ collapsed, onToggle, isMobile }: Props) {
 
       <div className="flex-1" />
 
-      {/* Footer: Cerrar sesión */}
-      <div className="px-2.5 py-3 border-t border-border">
+      {/* Footer: Privacidad + Cerrar sesión */}
+      <div className="px-2.5 py-3 border-t border-border flex flex-col gap-1">
+        <button
+          onClick={togglePrivacy}
+          title={privacy ? "Mostrar valores" : "Ocultar valores"}
+          className={[
+            "w-full flex items-center gap-3 rounded-lg text-sm transition-colors",
+            privacy ? "text-brand bg-brand-muted" : "text-text3 hover:bg-[#F5F6FA]",
+            collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5",
+          ].join(" ")}
+        >
+          {privacy ? <EyeOff size={16} /> : <Eye size={16} />}
+          {!collapsed && (
+            <span className="font-medium whitespace-nowrap">
+              {privacy ? "Mostrar valores" : "Ocultar valores"}
+            </span>
+          )}
+        </button>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
           title="Cerrar sesión"
