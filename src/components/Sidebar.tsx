@@ -7,6 +7,7 @@ import {
   PieChart,
   TrendingUp,
   Activity,
+  BarChart2,
   User,
   FileText,
   X,
@@ -25,6 +26,11 @@ const NAV_MAIN = [
     href: "/dashboard/movimientos",
     label: "Movimientos",
     icon: <Activity size={18} />,
+  },
+  {
+    href: "/dashboard/ganancias",
+    label: "Ganancias",
+    icon: <BarChart2 size={18} />,
   },
 ];
 const NAV_SECONDARY = [

@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import type { DashboardPosicion } from "@/lib/iol-types";
 import { fmtMoney, fmtPct } from "@/lib/fmt";
 import { getBadge, tipoLabel } from "@/lib/instrument";
+import { PosicionDrawer } from "./PosicionDrawer";
 
 interface Props {
   posiciones: DashboardPosicion[];
@@ -52,6 +53,7 @@ export function HoldingsTable({ posiciones, totalValuacion }: Props) {
   const [sortBy, setSortBy] = useState<SortBy>("valuacion");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [hovRow, setHovRow] = useState<number | null>(null);
+  const [selectedPosicion, setSelectedPosicion] = useState<DashboardPosicion | null>(null);
   const [visibleCols, setVisibleCols] = useState<Set<ColKey>>(
     new Set<ColKey>([
       "cantidad",
@@ -162,6 +164,11 @@ export function HoldingsTable({ posiciones, totalValuacion }: Props) {
   );
 
   return (
+    <>
+    <PosicionDrawer
+      posicion={selectedPosicion}
+      onClose={() => setSelectedPosicion(null)}
+    />
     <div className="bg-white rounded-card shadow-sm overflow-clip">
       {/* Toolbar */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-border-light flex-wrap gap-3">
@@ -239,7 +246,8 @@ export function HoldingsTable({ posiciones, totalValuacion }: Props) {
                   key={p.ticker}
                   onMouseEnter={() => setHovRow(i)}
                   onMouseLeave={() => setHovRow(null)}
-                  className={hovRow === i ? "bg-[#FAFBFE]" : "bg-transparent"}
+                  onClick={() => setSelectedPosicion(p)}
+                  className={`cursor-pointer ${hovRow === i ? "bg-[#FAFBFE]" : "bg-transparent"}`}
                 >
                   <td className={`${tdClsLeft} pl-5`}>
                     <div className="flex items-center gap-2">
@@ -329,5 +337,6 @@ export function HoldingsTable({ posiciones, totalValuacion }: Props) {
         </table>
       </div>
     </div>
+    </>
   );
 }

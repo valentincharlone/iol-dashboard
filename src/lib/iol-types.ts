@@ -56,6 +56,7 @@ export interface DashboardPosicion {
   ticker: string;
   nombre: string;
   tipo: string;
+  mercado: string;
   cantidad: number;
   precioActual: number;
   ppc: number; // precio promedio de compra
@@ -63,6 +64,32 @@ export interface DashboardPosicion {
   pnlPesos: number;
   pnlPorcentaje: number;
   variacionDiaria: number;
+}
+
+export interface IOLPunta {
+  cantidadCompra: number;
+  precioCompra: number;
+  precioVenta: number;
+  cantidadVenta: number;
+}
+
+export interface IOLCotizacionDetalle {
+  ultimoPrecio: number;
+  variacion: number;
+  apertura: number;
+  maximo: number;
+  minimo: number;
+  fechaHora: string;
+  tendencia: string;
+  cierreAnterior: number;
+  montoOperado: number;
+  volumenNominal: number;
+  precioPromedio?: number;
+  moneda: string;
+  puntas: IOLPunta[] | null;
+  cantidadOperaciones: number;
+  simbolo: string;
+  mercado: string;
 }
 
 export interface IOLSaldoLiquidacion {
@@ -193,6 +220,27 @@ export interface IOLArancel {
 }
 
 // Respuesta de GET /api/v2/operaciones/{numero} — campos distintos al listado
+export interface GananciaItem {
+  numero: number;
+  fecha: string;
+  ticker: string;
+  cantidad: number;
+  precio: number;
+  total: number;
+  moneda: string;
+  costoEstimado: number | null;
+  pnlEstimado: number | null;
+}
+
+export interface ResumenGanancias {
+  items: GananciaItem[];
+  totalRecibidoARS: number;
+  pnlEstimado: number | null;
+  pnlPct: number | null;
+  fechaDesde: string;
+  fechaHasta: string;
+}
+
 export interface MarketStripItem {
   label: string;
   sublabel: string;

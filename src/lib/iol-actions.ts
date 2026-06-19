@@ -8,11 +8,14 @@ import type {
   DashboardPosicion,
   EstadoCuenta,
   IOLCotizacionResponse,
+  IOLCotizacionDetalle,
   CotizacionItem,
   IOLOperacion,
   IOLOperacionDetalle,
   IOLPerfil,
   MarketStripItem,
+  GananciaItem,
+  ResumenGanancias,
 } from "./iol-types";
 
 const IOL_API_BASE = "https://api.invertironline.com";
@@ -106,6 +109,7 @@ export async function getPortafolio(): Promise<DashboardData> {
       ticker: a.titulo.simbolo,
       nombre: a.titulo.descripcion,
       tipo: a.titulo.tipo,
+      mercado: normalizeMercado(a.titulo.mercado),
       cantidad: a.cantidad,
       precioActual: a.ultimoPrecio ?? 0,
       ppc,
@@ -222,6 +226,108 @@ export async function getCotizacionesPortafolio(): Promise<CotizacionItem[]> {
     .sort((a, b) => b.variacionPorcentual - a.variacionPorcentual);
 }
 
+export async function getGananciasRealizadas(
+  desde?: string,
+  hasta?: string,
+): Promise<ResumenGanancias> {
+  const hoy = new Date();
+  const unAnioAtras = new Date(hoy);
+  unAnioAtras.setFullYear(unAnioAtras.getFullYear() - 1);
+  const fmt = (d: Date) => d.toISOString().split("T")[0];
+  const fechaDesde = desde || fmt(unAnioAtras);
+  const fechaHasta = hasta || fmt(hoy);
+
+  const all = await getOperaciones(fechaDesde, fechaHasta);
+
+  const esTerminada = (op: IOLOperacion) => {
+    const est = op.estado?.toLowerCase() ?? "";
+    return est === "terminada" || est === "parcialmente_terminada";
+  };
+
+  const ventas = all.filter(
+    (op) => op.tipo?.toLowerCase() === "venta" && esTerminada(op),
+  );
+  const compras = all.filter(
+    (op) => op.tipo?.toLowerCase() === "compra" && esTerminada(op),
+  );
+
+  // Costo promedio ponderado por ticker desde las compras del período
+  const costMap = new Map<string, number>();
+  const comprasByTicker = new Map<string, IOLOperacion[]>();
+  for (const c of compras) {
+    const t = (c.simbolo ?? "").toUpperCase();
+    if (!comprasByTicker.has(t)) comprasByTicker.set(t, []);
+    comprasByTicker.get(t)!.push(c);
+  }
+  for (const [ticker, ops] of comprasByTicker) {
+    let totalQty = 0;
+    let totalMonto = 0;
+    for (const op of ops) {
+      const qty = op.cantidadOperada ?? op.cantidad ?? 0;
+      const monto = Math.abs(op.montoOperado ?? op.monto ?? 0);
+      if (qty > 0 && monto > 0) {
+        totalQty += qty;
+        totalMonto += monto;
+      }
+    }
+    if (totalQty > 0) costMap.set(ticker, totalMonto / totalQty);
+  }
+
+  const items: GananciaItem[] = ventas
+    .map((op) => {
+      const ticker = (op.simbolo ?? "").toUpperCase();
+      const cantidad = op.cantidadOperada ?? op.cantidad ?? 0;
+      const precio = op.precioOperado ?? op.precio ?? 0;
+      const total = Math.abs(op.montoOperado ?? op.monto ?? cantidad * precio);
+      const moneda = op.moneda ?? "";
+      const enDolares = moneda.toLowerCase().includes("dolar");
+
+      const avgCosto = costMap.get(ticker);
+      const costoEstimado =
+        avgCosto != null && cantidad > 0 && !enDolares
+          ? avgCosto * cantidad
+          : null;
+      const pnlEstimado =
+        costoEstimado != null ? total - costoEstimado : null;
+
+      return {
+        numero: op.numero,
+        fecha: op.fechaOperada ?? op.fechaOrden,
+        ticker,
+        cantidad,
+        precio,
+        total,
+        moneda,
+        costoEstimado,
+        pnlEstimado,
+      };
+    })
+    .sort(
+      (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
+    );
+
+  const totalRecibidoARS = items
+    .filter((i) => !i.moneda.toLowerCase().includes("dolar"))
+    .reduce((acc, i) => acc + i.total, 0);
+
+  const itemsConPnl = items.filter((i) => i.pnlEstimado != null);
+  const pnlEstimado =
+    itemsConPnl.length > 0
+      ? itemsConPnl.reduce((acc, i) => acc + (i.pnlEstimado ?? 0), 0)
+      : null;
+
+  const totalCostoEstimado = itemsConPnl.reduce(
+    (acc, i) => acc + (i.costoEstimado ?? 0),
+    0,
+  );
+  const pnlPct =
+    pnlEstimado != null && totalCostoEstimado > 0
+      ? (pnlEstimado / totalCostoEstimado) * 100
+      : null;
+
+  return { items, totalRecibidoARS, pnlEstimado, pnlPct, fechaDesde, fechaHasta };
+}
+
 export async function getPerfil(): Promise<IOLPerfil> {
   return iolFetch<IOLPerfil>("/api/v2/datos-perfil");
 }
@@ -255,6 +361,24 @@ export async function getMarketStrip(): Promise<MarketStripItem[]> {
   }
 
   return items;
+}
+
+export async function getCotizacionDetalle(
+  mercado: string,
+  simbolo: string,
+): Promise<IOLCotizacionDetalle> {
+  return iolFetch<IOLCotizacionDetalle>(
+    `/api/v2/${mercado}/Titulos/${encodeURIComponent(simbolo)}/CotizacionDetalle`,
+  );
+}
+
+export async function getOperacionesByTicker(
+  simbolo: string,
+): Promise<IOLOperacion[]> {
+  const all = await getOperaciones();
+  return all.filter(
+    (op) => op.simbolo?.toUpperCase() === simbolo.toUpperCase(),
+  );
 }
 
 export async function getOperaciones(
