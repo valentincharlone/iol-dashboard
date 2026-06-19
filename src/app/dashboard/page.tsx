@@ -1,8 +1,10 @@
 export const dynamic = "force-dynamic";
 
+import { Suspense } from "react";
 import { getPortafolio } from "@/lib/iol-actions";
 import { HoldingsTable } from "@/components/HoldingsTable";
 import { AllocationChart } from "@/components/AllocationChart";
+import { MarketStrip } from "@/components/MarketStrip";
 import { fmtMoney, fmtUSD, fmtPct } from "@/lib/fmt";
 
 export default async function DashboardContent() {
@@ -30,12 +32,22 @@ export default async function DashboardContent() {
   return (
     <div className="p-4 pb-12 md:p-6 md:pb-16 flex flex-col gap-4 md:gap-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-[22px] font-bold text-text1 m-0">Portafolio</h1>
-          <p className="text-[13px] text-text3 mt-0.5">Argentina · BCBA</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[12px] text-text3">Argentina · BCBA</span>
+            <span className="text-text3/40 text-[12px] select-none">·</span>
+            <Suspense
+              fallback={
+                <span className="text-[12px] text-text3/40">cargando…</span>
+              }
+            >
+              <MarketStrip />
+            </Suspense>
+          </div>
         </div>
-        <span className="inline-flex items-center gap-1.5 text-profit text-[13px] font-semibold">
+        <span className="inline-flex items-center gap-1.5 text-profit text-[13px] font-semibold shrink-0">
           <span className="w-2 h-2 rounded-full bg-profit-subtle shadow-[0_0_0_3px_rgba(16,185,129,0.2)] animate-[livePulse_2s_ease-in-out_infinite] inline-block" />
           En vivo
         </span>

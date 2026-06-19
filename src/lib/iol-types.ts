@@ -193,6 +193,14 @@ export interface IOLArancel {
 }
 
 // Respuesta de GET /api/v2/operaciones/{numero} — campos distintos al listado
+export interface MarketStripItem {
+  label: string;
+  sublabel: string;
+  precio: number;
+  variacion: number | null;
+  moneda: "ARS" | "USD";
+}
+
 export interface IOLOperacionDetalle {
   numero: number;
   mercado: string;

@@ -12,6 +12,7 @@ import type {
   IOLOperacion,
   IOLOperacionDetalle,
   IOLPerfil,
+  MarketStripItem,
 } from "./iol-types";
 
 const IOL_API_BASE = "https://api.invertironline.com";
@@ -227,6 +228,33 @@ export async function getPerfil(): Promise<IOLPerfil> {
 
 export async function getOperacionDetalle(numero: number): Promise<IOLOperacionDetalle> {
   return iolFetch<IOLOperacionDetalle>(`/api/v2/operaciones/${numero}`);
+}
+
+export async function getMarketStrip(): Promise<MarketStripItem[]> {
+  const [spyResult] = await Promise.allSettled([
+    iolFetch<IOLCotizacionResponse>("/api/v2/bCBA/Titulos/SPY/Cotizacion"),
+  ]);
+
+  const items: MarketStripItem[] = [];
+
+  if (spyResult.status === "fulfilled") {
+    const d = spyResult.value;
+    const variacion =
+      d.variacion !== 0
+        ? d.variacion
+        : d.cierreAnterior > 0
+          ? ((d.ultimoPrecio - d.cierreAnterior) / d.cierreAnterior) * 100
+          : null;
+    items.push({
+      label: "S&P 500",
+      sublabel: "SPY",
+      precio: d.ultimoPrecio,
+      variacion,
+      moneda: "ARS",
+    });
+  }
+
+  return items;
 }
 
 export async function getOperaciones(
