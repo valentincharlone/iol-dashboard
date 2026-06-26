@@ -7,6 +7,7 @@ import { AllocationChart } from "@/components/AllocationChart";
 import { MarketStrip } from "@/components/MarketStrip";
 import { ValuacionCard } from "@/components/ValuacionCard";
 import { fmtMoney, fmtUSD, fmtPct } from "@/lib/fmt";
+import { MarketStatusBadge } from "@/components/MarketStatusBadge";
 
 export default async function DashboardContent() {
   const {
@@ -48,10 +49,7 @@ export default async function DashboardContent() {
             </Suspense>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1.5 text-profit text-[13px] font-semibold shrink-0">
-          <span className="w-2 h-2 rounded-full bg-profit-subtle shadow-[0_0_0_3px_rgba(16,185,129,0.2)] animate-[livePulse_2s_ease-in-out_infinite] inline-block" />
-          En vivo
-        </span>
+        <MarketStatusBadge />
       </div>
 
       {/* KPI row */}
