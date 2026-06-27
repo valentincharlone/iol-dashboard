@@ -3,6 +3,9 @@ export const dynamic = "force-dynamic";
 import { getPerfil, getPortafolio } from "@/lib/iol-actions";
 import { ValuacionCard } from "@/components/ValuacionCard";
 import { fmtMoney, fmtUSD } from "@/lib/fmt";
+import { IOL_LOGO_GRADIENT } from "@/lib/config";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 const PERFIL_BADGE: Record<
   string,
@@ -13,7 +16,11 @@ const PERFIL_BADGE: Record<
     text: "text-profit",
     label: "Conservador",
   },
-  moderado: { bg: "bg-orange-50 dark:bg-orange-950/40", text: "text-orange-700 dark:text-orange-400", label: "Moderado" },
+  moderado: {
+    bg: "bg-orange-50 dark:bg-orange-950/40",
+    text: "text-orange-700 dark:text-orange-400",
+    label: "Moderado",
+  },
   agresivo: { bg: "bg-loss-bg", text: "text-loss", label: "Agresivo" },
   agresivo_moderado: {
     bg: "bg-yellow-50 dark:bg-yellow-950/40",
@@ -58,19 +65,19 @@ export default async function PerfilPage() {
     `${perfil.nombre?.[0] ?? ""}${perfil.apellido?.[0] ?? ""}`.toUpperCase();
 
   return (
-    <div className="p-4 pb-12 md:p-6 md:pb-16 flex flex-col gap-5">
-      <div>
-        <h1 className="text-[22px] font-bold text-text1 m-0">Mi perfil</h1>
-        <p className="text-[13px] text-text3 mt-0.5">
-          Datos de tu cuenta en InvertirOnLine
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Mi perfil"
+        subtitle="Datos de tu cuenta en InvertirOnLine"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
         {/* Datos personales */}
         <div className="bg-card rounded-card shadow-sm p-7">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#4338CA] to-[#818CF8] flex items-center justify-center text-white font-bold text-xl tracking-tight shrink-0">
+            <div
+              className={`w-14 h-14 rounded-full ${IOL_LOGO_GRADIENT} flex items-center justify-center text-white font-bold text-xl tracking-tight shrink-0`}
+            >
               {initials || "?"}
             </div>
             <div>
@@ -154,6 +161,6 @@ export default async function PerfilPage() {
           )}
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

@@ -1,7 +1,7 @@
 import { getValidToken, invalidateTokens } from "@/lib/iol-auth";
+import { IOL_API_BASE } from "@/lib/config";
+import { toDateInput } from "@/lib/fmt";
 import { NextRequest } from "next/server";
-
-const IOL_API_BASE = "https://api.invertironline.com";
 
 function fechaDesde(periodo: string): string {
   const d = new Date();
@@ -13,7 +13,7 @@ function fechaDesde(periodo: string): string {
     case "1A": d.setFullYear(d.getFullYear() - 1); break;
     default:   d.setMonth(d.getMonth() - 1);
   }
-  return d.toISOString().split("T")[0];
+  return toDateInput(d);
 }
 
 export async function GET(
@@ -25,7 +25,7 @@ export async function GET(
   const periodo = url.searchParams.get("periodo") ?? "1M";
   const mercado = url.searchParams.get("mercado") ?? "bCBA";
 
-  const hoy = new Date().toISOString().split("T")[0];
+  const hoy = toDateInput(new Date());
   const desde = fechaDesde(periodo);
 
   let token: string;

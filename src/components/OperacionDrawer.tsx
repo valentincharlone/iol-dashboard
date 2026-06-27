@@ -10,7 +10,13 @@ import { DrawerSection, DrawerRow } from "./DrawerPrimitives";
 
 function fmtNum(n: number | null | undefined, prefix = "$") {
   if (n == null) return "—";
-  return prefix + Math.abs(n).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (
+    prefix +
+    Math.abs(n).toLocaleString("es-AR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
 }
 
 function fmtCant(n: number | null | undefined) {
@@ -29,7 +35,10 @@ export function OperacionDrawer({ numero, onClose }: Props) {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (numero == null) { setOp(null); return; }
+    if (numero == null) {
+      setOp(null);
+      return;
+    }
     setLoading(true);
     setError(false);
     getOperacionDetalle(numero)
@@ -40,7 +49,9 @@ export function OperacionDrawer({ numero, onClose }: Props) {
 
   useEffect(() => {
     if (numero == null) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [numero, onClose]);
@@ -59,10 +70,17 @@ export function OperacionDrawer({ numero, onClose }: Props) {
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
-            <div className="text-[15px] font-bold text-text1">Operación #{numero}</div>
-            <div className="text-[12px] text-text3 mt-0.5">Detalle completo</div>
+            <div className="text-[15px] font-bold text-text1">
+              Operación #{numero}
+            </div>
+            <div className="text-[12px] text-text3 mt-0.5">
+              Detalle completo
+            </div>
           </div>
-          <button onClick={onClose} className="text-text3 hover:text-text1 transition-colors p-1">
+          <button
+            onClick={onClose}
+            className="text-text3 hover:text-text1 transition-colors p-1"
+          >
             <X size={18} />
           </button>
         </div>
@@ -71,7 +89,10 @@ export function OperacionDrawer({ numero, onClose }: Props) {
           {loading && (
             <div className="flex flex-col gap-3 pt-2">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex justify-between py-3 border-b border-border-light">
+                <div
+                  key={i}
+                  className="flex justify-between py-3 border-b border-border-light"
+                >
                   <div className="shimmer h-3.5 w-24" />
                   <div className="shimmer h-3.5 w-28" />
                 </div>
@@ -85,79 +106,132 @@ export function OperacionDrawer({ numero, onClose }: Props) {
             </p>
           )}
 
-          {op && !loading && (() => {
-            const { cls: tipoCls, label: tipoLabel } = getTipoCls(op.tipo);
-            const estadoCls = getEstadoCls(op.estadoActual);
-            const monedaPrefix = getMonedaPrefix(op.moneda);
-            const isDividendo = !op.tipo || op.tipo === "";
-            const aranceles = op.aranceles?.filter(a => a.neto !== 0) ?? [];
+          {op &&
+            !loading &&
+            (() => {
+              const { cls: tipoCls, label: tipoLabel } = getTipoCls(op.tipo);
+              const estadoCls = getEstadoCls(op.estadoActual);
+              const monedaPrefix = getMonedaPrefix(op.moneda);
+              const isDividendo = !op.tipo || op.tipo === "";
+              const aranceles = op.aranceles?.filter((a) => a.neto !== 0) ?? [];
 
-            return (
-              <div>
-                <div className="flex items-center gap-2 mb-5 pt-1">
-                  <span className={`text-[12px] font-semibold px-2.5 py-1 rounded-md ${tipoCls}`}>
-                    {tipoLabel || "Acreditación"}
-                  </span>
-                  <span className={`text-[13px] font-semibold ${estadoCls}`}>
-                    {fmtEstado(op.estadoActual)}
-                  </span>
-                </div>
+              return (
+                <div>
+                  <div className="flex items-center gap-2 mb-5 pt-1">
+                    <span
+                      className={`text-[12px] font-semibold px-2.5 py-1 rounded-md ${tipoCls}`}
+                    >
+                      {tipoLabel || "Acreditación"}
+                    </span>
+                    <span className={`text-[13px] font-semibold ${estadoCls}`}>
+                      {fmtEstado(op.estadoActual)}
+                    </span>
+                  </div>
 
-                <div className="bg-surfaceInset rounded-xl p-4 mb-1">
-                  <div className="text-[20px] font-bold text-text1">{op.simbolo}</div>
-                  <div className="text-[12px] text-text3 mt-0.5">{op.mercado}</div>
-                </div>
+                  <div className="bg-surfaceInset rounded-xl p-4 mb-1">
+                    <div className="text-[20px] font-bold text-text1">
+                      {op.simbolo}
+                    </div>
+                    <div className="text-[12px] text-text3 mt-0.5">
+                      {op.mercado}
+                    </div>
+                  </div>
 
-                <DrawerSection title="Fechas">
-                  <DrawerRow label="Fecha de alta"   value={fmtFechaHora(op.fechaAlta)}    />
-                  <DrawerRow label="Fecha operada"   value={fmtFechaHora(op.fechaOperado)} />
-                  {op.validez && <DrawerRow label="Validez hasta" value={fmtFechaHora(op.validez)} />}
-                </DrawerSection>
-
-                {!isDividendo && (
-                  <DrawerSection title="Cantidades y precios">
-                    <DrawerRow label="Cantidad" value={fmtCant(op.cantidad)} mono />
-                    <DrawerRow label="Precio"   value={fmtNum(op.precio, monedaPrefix)} mono />
-                  </DrawerSection>
-                )}
-
-                <DrawerSection title="Totales">
-                  <DrawerRow label="Monto"            value={fmtNum(op.monto, monedaPrefix)}           mono />
-                  <DrawerRow label="Monto operado"    value={fmtNum(op.montoOperacion, monedaPrefix)}  mono />
-                  {op.fondosParaOperacion != null && (
-                    <DrawerRow label="Fondos requeridos" value={fmtNum(op.fondosParaOperacion, monedaPrefix)} mono />
-                  )}
-                </DrawerSection>
-
-                {aranceles.length > 0 && (
-                  <DrawerSection title="Aranceles">
-                    {aranceles.map((a, i) => (
+                  <DrawerSection title="Fechas">
+                    <DrawerRow
+                      label="Fecha de alta"
+                      value={fmtFechaHora(op.fechaAlta)}
+                    />
+                    <DrawerRow
+                      label="Fecha operada"
+                      value={fmtFechaHora(op.fechaOperado)}
+                    />
+                    {op.validez && (
                       <DrawerRow
-                        key={i}
-                        label={a.tipo || "Arancel"}
-                        value={fmtNum(a.neto + a.iva, getMonedaPrefix(a.moneda))}
+                        label="Validez hasta"
+                        value={fmtFechaHora(op.validez)}
+                      />
+                    )}
+                  </DrawerSection>
+
+                  {!isDividendo && (
+                    <DrawerSection title="Cantidades y precios">
+                      <DrawerRow
+                        label="Cantidad"
+                        value={fmtCant(op.cantidad)}
                         mono
                       />
-                    ))}
-                    {op.arancelesARS != null && op.arancelesARS !== 0 && (
-                      <DrawerRow label="Total ARS" value={fmtNum(op.arancelesARS)} mono />
-                    )}
-                    {op.arancelesUSD != null && op.arancelesUSD !== 0 && (
-                      <DrawerRow label="Total USD" value={fmtNum(op.arancelesUSD, "US$")} mono />
-                    )}
-                  </DrawerSection>
-                )}
+                      <DrawerRow
+                        label="Precio"
+                        value={fmtNum(op.precio, monedaPrefix)}
+                        mono
+                      />
+                    </DrawerSection>
+                  )}
 
-                {!isDividendo && (
-                  <DrawerSection title="Condiciones">
-                    <DrawerRow label="Modalidad" value={fmtEnum(op.modalidad)} />
-                    <DrawerRow label="Plazo"     value={fmtEnum(op.plazo)} />
-                    <DrawerRow label="Moneda"    value={fmtEnum(op.moneda)} />
+                  <DrawerSection title="Totales">
+                    <DrawerRow
+                      label="Monto"
+                      value={fmtNum(op.monto, monedaPrefix)}
+                      mono
+                    />
+                    <DrawerRow
+                      label="Monto operado"
+                      value={fmtNum(op.montoOperacion, monedaPrefix)}
+                      mono
+                    />
+                    {op.fondosParaOperacion != null && (
+                      <DrawerRow
+                        label="Fondos requeridos"
+                        value={fmtNum(op.fondosParaOperacion, monedaPrefix)}
+                        mono
+                      />
+                    )}
                   </DrawerSection>
-                )}
-              </div>
-            );
-          })()}
+
+                  {aranceles.length > 0 && (
+                    <DrawerSection title="Aranceles">
+                      {aranceles.map((a, i) => (
+                        <DrawerRow
+                          key={i}
+                          label={a.tipo || "Arancel"}
+                          value={fmtNum(
+                            a.neto + a.iva,
+                            getMonedaPrefix(a.moneda),
+                          )}
+                          mono
+                        />
+                      ))}
+                      {op.arancelesARS != null && op.arancelesARS !== 0 && (
+                        <DrawerRow
+                          label="Total ARS"
+                          value={fmtNum(op.arancelesARS)}
+                          mono
+                        />
+                      )}
+                      {op.arancelesUSD != null && op.arancelesUSD !== 0 && (
+                        <DrawerRow
+                          label="Total USD"
+                          value={fmtNum(op.arancelesUSD, "US$")}
+                          mono
+                        />
+                      )}
+                    </DrawerSection>
+                  )}
+
+                  {!isDividendo && (
+                    <DrawerSection title="Condiciones">
+                      <DrawerRow
+                        label="Modalidad"
+                        value={fmtEnum(op.modalidad)}
+                      />
+                      <DrawerRow label="Plazo" value={fmtEnum(op.plazo)} />
+                      <DrawerRow label="Moneda" value={fmtEnum(op.moneda)} />
+                    </DrawerSection>
+                  )}
+                </div>
+              );
+            })()}
         </div>
       </div>
     </>

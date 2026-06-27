@@ -1,6 +1,7 @@
 "use server";
 
 import { getValidToken, invalidateTokens } from "./iol-auth";
+import { IOL_API_BASE } from "./config";
 import type {
   IOLPortafolio,
   IOLEstadoCuenta,
@@ -18,7 +19,6 @@ import type {
   ResumenGanancias,
 } from "./iol-types";
 
-const IOL_API_BASE = "https://api.invertironline.com";
 
 const MERCADO_MAP: Record<string, string> = {
   bcba: "bCBA",

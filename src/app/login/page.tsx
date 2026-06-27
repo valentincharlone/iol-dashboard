@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { IOL_LOGO_GRADIENT } from "@/lib/config";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,7 +16,11 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const res = await signIn("credentials", { username, password, redirect: false });
+    const res = await signIn("credentials", {
+      username,
+      password,
+      redirect: false,
+    });
     setLoading(false);
     if (res?.ok) router.push("/dashboard");
     else setError("Usuario o contraseña incorrectos.");
@@ -29,11 +34,15 @@ export default function LoginPage() {
       <div className="w-full max-w-[380px]">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4338CA] to-[#818CF8] inline-flex items-center justify-center text-white font-bold text-[15px] tracking-tight mb-4">
+          <div
+            className={`w-12 h-12 rounded-xl ${IOL_LOGO_GRADIENT} inline-flex items-center justify-center text-white font-bold text-[15px] tracking-tight mb-4`}
+          >
             IOL
           </div>
           <h1 className="text-[22px] font-bold text-text1 mb-1">Dashboard</h1>
-          <p className="text-[13px] text-text3">Ingresá para ver tu portafolio</p>
+          <p className="text-[13px] text-text3">
+            Ingresá para ver tu portafolio
+          </p>
         </div>
 
         {/* Card */}
@@ -76,7 +85,9 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
               className={`mt-1 rounded-lg py-3 text-sm font-semibold text-white border-none font-[inherit] transition-opacity ${
-                loading ? "bg-brand-light cursor-not-allowed" : "bg-brand cursor-pointer hover:opacity-90"
+                loading
+                  ? "bg-brand-light cursor-not-allowed"
+                  : "bg-brand cursor-pointer hover:opacity-90"
               }`}
             >
               {loading ? "Ingresando…" : "Ingresar"}

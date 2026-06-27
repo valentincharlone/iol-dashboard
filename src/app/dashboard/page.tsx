@@ -55,7 +55,10 @@ export default async function DashboardContent() {
       {/* KPI row */}
       <div className="grid grid-cols-2 md:grid-cols-kpi gap-3 md:gap-3.5">
         {/* Hero */}
-        <ValuacionCard valuacion={totalValuacion} className="col-span-2 md:col-span-1">
+        <ValuacionCard
+          valuacion={totalValuacion}
+          className="col-span-2 md:col-span-1"
+        >
           <div className="flex flex-wrap gap-3 md:gap-4">
             <div className="text-[12px] opacity-65">
               <span className="opacity-80">Invertido </span>

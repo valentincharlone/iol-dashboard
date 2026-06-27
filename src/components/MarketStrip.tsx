@@ -18,12 +18,15 @@ export async function MarketStrip() {
         const precio = "$" + Math.round(item.precio).toLocaleString("es-AR");
 
         return (
-          <span key={item.label} className="flex items-center gap-1.5 text-[12px]">
-            {i > 0 && (
-              <span className="text-text3/40 select-none">·</span>
-            )}
+          <span
+            key={item.label}
+            className="flex items-center gap-1.5 text-[12px]"
+          >
+            {i > 0 && <span className="text-text3/40 select-none">·</span>}
             <span className="text-text3 font-medium">{item.label}</span>
-            <span className="text-text1 font-semibold tabular-nums">{precio}</span>
+            <span className="text-text1 font-semibold tabular-nums">
+              {precio}
+            </span>
             {item.variacion !== null && (
               <span className={`font-semibold tabular-nums ${varColor}`}>
                 {fmtPct(item.variacion)}

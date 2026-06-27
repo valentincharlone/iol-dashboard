@@ -58,3 +58,8 @@ export function toDateInput(d: Date): string {
 export function getMonedaPrefix(moneda?: string | null): string {
   return moneda?.toLowerCase().includes("dolar") ? "US$" : "$";
 }
+
+export function fmtDateStr(s: string): string {
+  const [y, m, d] = s.split("-");
+  return `${d}/${m}/${y}`;
+}

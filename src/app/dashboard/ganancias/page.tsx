@@ -2,25 +2,11 @@ export const dynamic = "force-dynamic";
 
 import { getGananciasRealizadas } from "@/lib/iol-actions";
 import { GananciasToolbar } from "@/components/GananciasToolbar";
-import { fmtMoney, fmtPct } from "@/lib/fmt";
-import type { GananciaItem } from "@/lib/iol-types";
-
-function fmtFecha(iso: string) {
-  try {
-    const d = new Date(iso);
-    const p = (n: number) => String(n).padStart(2, "0");
-    return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
-  } catch {
-    return iso;
-  }
-}
-
-function fmtPrecio(n: number) {
-  return (
-    "$" +
-    n.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  );
-}
+import { fmtMoney, fmtPct, fmtFecha, fmtPrice, fmtDateStr } from "@/lib/fmt";
+import type { GananciaItem, DateRangeSearchParams } from "@/lib/iol-types";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
+import { getMonedaPrefix } from "@/lib/fmt";
 
 function KpiCard({
   label,
@@ -38,17 +24,20 @@ function KpiCard({
       <div className="text-[12px] font-medium text-text3 uppercase tracking-wide mb-1.5">
         {label}
       </div>
-      <div className={`text-[24px] font-bold tabular-nums ${valueColor ?? "text-text1"}`}>
+      <div
+        className={`text-[24px] font-bold tabular-nums ${valueColor ?? "text-text1"}`}
+      >
         {value}
       </div>
-      {sub && <div className="text-[12px] text-text3 mt-0.5 tabular-nums">{sub}</div>}
+      {sub && (
+        <div className="text-[12px] text-text3 mt-0.5 tabular-nums">{sub}</div>
+      )}
     </div>
   );
 }
 
 function VentaRow({ item }: { item: GananciaItem }) {
-  const enDolares = item.moneda?.toLowerCase().includes("dolar");
-  const prefix = enDolares ? "US$" : "$";
+  const prefix = getMonedaPrefix(item.moneda);
   const hasPnl = item.pnlEstimado != null;
   const pnlPos = (item.pnlEstimado ?? 0) >= 0;
 
@@ -64,19 +53,27 @@ function VentaRow({ item }: { item: GananciaItem }) {
         {item.cantidad.toLocaleString("es-AR")}
       </td>
       <td className="py-3 px-3 text-[13px] text-right tabular-nums text-text2 whitespace-nowrap">
-        {fmtPrecio(item.precio)}
+        {fmtPrice(item.precio)}
       </td>
       <td className="py-3 px-3 text-[13px] text-right font-semibold tabular-nums text-text1 whitespace-nowrap">
-        {prefix}{Math.round(item.total).toLocaleString("es-AR")}
+        {prefix}
+        {Math.round(item.total).toLocaleString("es-AR")}
       </td>
       <td className="py-3 px-5 text-right whitespace-nowrap">
         {hasPnl ? (
           <div>
-            <div className={`text-[13px] font-semibold tabular-nums ${pnlPos ? "text-profit" : "text-loss"}`}>
-              {fmtPct(((item.pnlEstimado ?? 0) / (item.costoEstimado ?? 1)) * 100)}
+            <div
+              className={`text-[13px] font-semibold tabular-nums ${pnlPos ? "text-profit" : "text-loss"}`}
+            >
+              {fmtPct(
+                ((item.pnlEstimado ?? 0) / (item.costoEstimado ?? 1)) * 100,
+              )}
             </div>
-            <div className={`text-[10px] tabular-nums opacity-75 ${pnlPos ? "text-profit" : "text-loss"}`}>
-              {(item.pnlEstimado ?? 0) >= 0 ? "+" : ""}{fmtMoney(item.pnlEstimado ?? 0)}
+            <div
+              className={`text-[10px] tabular-nums opacity-75 ${pnlPos ? "text-profit" : "text-loss"}`}
+            >
+              {(item.pnlEstimado ?? 0) >= 0 ? "+" : ""}
+              {fmtMoney(item.pnlEstimado ?? 0)}
             </div>
           </div>
         ) : (
@@ -87,34 +84,28 @@ function VentaRow({ item }: { item: GananciaItem }) {
   );
 }
 
-type SearchParams = Promise<{ desde?: string; hasta?: string }>;
-
 export default async function GananciasPage({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  searchParams: DateRangeSearchParams;
 }) {
   const { desde, hasta } = await searchParams;
-  const { items, totalRecibidoARS, pnlEstimado, pnlPct, fechaDesde, fechaHasta } =
-    await getGananciasRealizadas(desde, hasta);
-
-  const fmtDate = (s: string) => {
-    const [y, m, d] = s.split("-");
-    return `${d}/${m}/${y}`;
-  };
+  const {
+    items,
+    totalRecibidoARS,
+    pnlEstimado,
+    pnlPct,
+    fechaDesde,
+    fechaHasta,
+  } = await getGananciasRealizadas(desde, hasta);
 
   return (
-    <div className="p-4 pb-12 md:p-6 md:pb-16 flex flex-col gap-5">
-      {/* Header */}
-      <div>
-        <h1 className="text-[22px] font-bold text-text1 m-0">Ganancias realizadas</h1>
-        <p className="text-[13px] text-text3 mt-0.5">
-          {fmtDate(fechaDesde)} — {fmtDate(fechaHasta)} · {items.length} ventas terminadas
-        </p>
-        <p className="text-[12px] text-text3 mt-1.5">
-          Resultado de las ventas cerradas. El P&L es estimado según las compras del mismo período.
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Ganancias realizadas"
+        subtitle={`${fmtDateStr(fechaDesde)} — ${fmtDateStr(fechaHasta)} · ${items.length} ventas terminadas`}
+        description="Resultado de las ventas cerradas. El P&L es estimado según las compras del mismo período."
+      />
 
       {/* KPI cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-3.5">
@@ -145,8 +136,13 @@ export default async function GananciasPage({
       {items.length === 0 ? (
         <div className="bg-card rounded-card shadow-sm overflow-clip">
           <div className="px-5 py-4 border-b border-border flex items-center justify-between flex-wrap gap-3">
-            <span className="text-[15px] font-semibold text-text1">Detalle de ventas</span>
-            <GananciasToolbar defaultDesde={fechaDesde} defaultHasta={fechaHasta} />
+            <span className="text-[15px] font-semibold text-text1">
+              Detalle de ventas
+            </span>
+            <GananciasToolbar
+              defaultDesde={fechaDesde}
+              defaultHasta={fechaHasta}
+            />
           </div>
           <p className="py-10 text-center text-[13px] text-text3">
             No se encontraron ventas terminadas en el período.
@@ -156,23 +152,40 @@ export default async function GananciasPage({
         <div className="bg-card rounded-card shadow-sm overflow-clip">
           <div className="px-5 py-4 border-b border-border flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-[15px] font-semibold text-text1">Detalle de ventas</span>
+              <span className="text-[15px] font-semibold text-text1">
+                Detalle de ventas
+              </span>
               <span className="text-[11px] text-text3 bg-surface2 px-2.5 py-1 rounded-full">
                 P&L estimado desde compras del mismo período
               </span>
             </div>
-            <GananciasToolbar defaultDesde={fechaDesde} defaultHasta={fechaHasta} />
+            <GananciasToolbar
+              defaultDesde={fechaDesde}
+              defaultHasta={fechaHasta}
+            />
           </div>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse" style={{ minWidth: 620 }}>
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-2.5 px-5 text-[10px] font-semibold text-text3 uppercase tracking-wide whitespace-nowrap">Fecha</th>
-                  <th className="text-left py-2.5 px-3 text-[10px] font-semibold text-text3 uppercase tracking-wide">Ticker</th>
-                  <th className="text-right py-2.5 px-3 text-[10px] font-semibold text-text3 uppercase tracking-wide">Cant.</th>
-                  <th className="text-right py-2.5 px-3 text-[10px] font-semibold text-text3 uppercase tracking-wide">Precio</th>
-                  <th className="text-right py-2.5 px-3 text-[10px] font-semibold text-text3 uppercase tracking-wide">Total</th>
-                  <th className="text-right py-2.5 px-5 text-[10px] font-semibold text-text3 uppercase tracking-wide">P&L est.</th>
+                  <th className="text-left py-2.5 px-5 text-[10px] font-semibold text-text3 uppercase tracking-wide whitespace-nowrap">
+                    Fecha
+                  </th>
+                  <th className="text-left py-2.5 px-3 text-[10px] font-semibold text-text3 uppercase tracking-wide">
+                    Ticker
+                  </th>
+                  <th className="text-right py-2.5 px-3 text-[10px] font-semibold text-text3 uppercase tracking-wide">
+                    Cant.
+                  </th>
+                  <th className="text-right py-2.5 px-3 text-[10px] font-semibold text-text3 uppercase tracking-wide">
+                    Precio
+                  </th>
+                  <th className="text-right py-2.5 px-3 text-[10px] font-semibold text-text3 uppercase tracking-wide">
+                    Total
+                  </th>
+                  <th className="text-right py-2.5 px-5 text-[10px] font-semibold text-text3 uppercase tracking-wide">
+                    P&L est.
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -184,6 +197,6 @@ export default async function GananciasPage({
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

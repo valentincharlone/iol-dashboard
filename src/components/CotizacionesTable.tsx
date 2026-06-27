@@ -45,7 +45,6 @@ const COLUMNS: { key: SortKey; label: string; left?: true }[] = [
   { key: "monto", label: "Monto op." },
 ];
 
-
 export function CotizacionesTable({ items }: Props) {
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({
     key: "variacion",

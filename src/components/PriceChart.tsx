@@ -41,7 +41,6 @@ function fmtTooltipFecha(fechaHora: string): string {
   });
 }
 
-
 function CustomTooltip({
   active,
   payload,
@@ -129,8 +128,9 @@ export function PriceChart({ ticker, mercado }: Props) {
     : 100;
 
   const Y_TICKS = 7;
-  const yTicks = Array.from({ length: Y_TICKS }, (_, i) =>
-    yMin + (yMax - yMin) * (i / (Y_TICKS - 1)),
+  const yTicks = Array.from(
+    { length: Y_TICKS },
+    (_, i) => yMin + (yMax - yMin) * (i / (Y_TICKS - 1)),
   );
 
   return (

@@ -20,7 +20,8 @@ export function GananciasToolbar({ defaultDesde, defaultHasta }: Props) {
   function applyPeriod(idx: number) {
     setActivePeriod(idx);
     const { days } = PERIODOS_GANANCIAS[idx];
-    const newDesde = days === 0 ? "" : toDateInput(new Date(Date.now() - days * 86_400_000));
+    const newDesde =
+      days === 0 ? "" : toDateInput(new Date(Date.now() - days * 86_400_000));
     const newHasta = toDateInput(new Date());
     setDesde(newDesde);
     setHasta(newHasta);
@@ -43,7 +44,11 @@ export function GananciasToolbar({ defaultDesde, defaultHasta }: Props) {
       {/* Períodos rápidos */}
       <div className="flex gap-1">
         {PERIODOS_GANANCIAS.map((p, idx) => (
-          <button key={p.label} onClick={() => applyPeriod(idx)} className={filterBtnCls(activePeriod === idx)}>
+          <button
+            key={p.label}
+            onClick={() => applyPeriod(idx)}
+            className={filterBtnCls(activePeriod === idx)}
+          >
             {p.label}
           </button>
         ))}

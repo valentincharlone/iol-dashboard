@@ -1,6 +1,8 @@
 // src/lib/iol-types.ts
 // Tipos que mapean la respuesta real de GET /api/v2/portafolio/argentina
 
+export type DateRangeSearchParams = Promise<{ desde?: string; hasta?: string }>;
+
 export interface IOLTitulo {
   simbolo: string;
   descripcion: string;

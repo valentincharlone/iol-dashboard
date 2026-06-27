@@ -2,34 +2,30 @@ export const dynamic = "force-dynamic";
 
 import { getOperaciones } from "@/lib/iol-actions";
 import { MovimientosTable } from "@/components/MovimientosTable";
-
-type SearchParams = Promise<{ desde?: string; hasta?: string }>;
+import type { DateRangeSearchParams } from "@/lib/iol-types";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 export default async function MovimientosPage({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  searchParams: DateRangeSearchParams;
 }) {
   const { desde, hasta } = await searchParams;
   const operaciones = await getOperaciones(desde, hasta);
 
   return (
-    <div className="p-4 pb-12 md:p-6 md:pb-16 flex flex-col gap-5">
-      <div>
-        <h1 className="text-[22px] font-bold text-text1 m-0">Movimientos</h1>
-        <p className="text-[13px] text-text3 mt-0.5">
-          Historial de operaciones · Argentina
-        </p>
-        <p className="text-[12px] text-text3 mt-1.5">
-          Historial de operaciones ejecutadas. Filtrá por período para acotar la búsqueda.
-        </p>
-      </div>
-
+    <PageContainer>
+      <PageHeader
+        title="Movimientos"
+        subtitle="Historial de operaciones · Argentina"
+        description="Historial de operaciones ejecutadas. Filtrá por período para acotar la búsqueda."
+      />
       <MovimientosTable
         operaciones={operaciones}
         defaultDesde={desde ?? ""}
         defaultHasta={hasta ?? ""}
       />
-    </div>
+    </PageContainer>
   );
 }

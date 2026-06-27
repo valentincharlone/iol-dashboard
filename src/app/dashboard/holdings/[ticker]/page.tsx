@@ -7,14 +7,25 @@ import { getPortafolio, getCotizacionDetalle } from "@/lib/iol-actions";
 import { PriceChart } from "@/components/PriceChart";
 import { getBadge, tipoLabel } from "@/lib/instrument";
 import { fmtMoney, fmtPct } from "@/lib/fmt";
+import { PageContainer } from "@/components/PageContainer";
 
-function Stat({ label, value, valueClass = "" }: { label: string; value: string; valueClass?: string }) {
+function Stat({
+  label,
+  value,
+  valueClass = "",
+}: {
+  label: string;
+  value: string;
+  valueClass?: string;
+}) {
   return (
     <div>
       <div className="text-[11px] font-medium text-text3 uppercase tracking-wide mb-0.5">
         {label}
       </div>
-      <div className={`text-[15px] font-bold tabular-nums text-text1 ${valueClass}`}>
+      <div
+        className={`text-[15px] font-bold tabular-nums text-text1 ${valueClass}`}
+      >
         {value}
       </div>
     </div>
@@ -40,10 +51,13 @@ export default async function TickerPage({
   const isPos = posicion.pnlPorcentaje >= 0;
   const hoyPos = posicion.variacionDiaria >= 0;
 
-  const cotizacion = await getCotizacionDetalle(posicion.mercado, posicion.ticker).catch(() => null);
+  const cotizacion = await getCotizacionDetalle(
+    posicion.mercado,
+    posicion.ticker,
+  ).catch(() => null);
 
   return (
-    <div className="p-4 pb-12 md:p-6 md:pb-16 flex flex-col gap-5">
+    <PageContainer>
       {/* Header */}
       <div>
         <Link
@@ -54,7 +68,9 @@ export default async function TickerPage({
           Holdings
         </Link>
         <div className="flex items-center gap-2.5 flex-wrap">
-          <h1 className="text-[22px] font-bold text-text1 m-0">{posicion.ticker}</h1>
+          <h1 className="text-[22px] font-bold text-text1 m-0">
+            {posicion.ticker}
+          </h1>
           <span
             className="text-[10px] font-semibold px-1.5 py-0.5 rounded-[4px] tracking-[0.3px]"
             style={{ background: badge.bg, color: badge.text }}
@@ -71,8 +87,11 @@ export default async function TickerPage({
           <span className="text-[26px] font-bold tabular-nums text-text1">
             {fmtMoney(posicion.precioActual)}
           </span>
-          <span className={`text-[14px] font-semibold tabular-nums ${hoyPos ? "text-profit" : "text-loss"}`}>
-            {hoyPos ? "+" : ""}{posicion.variacionDiaria.toFixed(2)}% hoy
+          <span
+            className={`text-[14px] font-semibold tabular-nums ${hoyPos ? "text-profit" : "text-loss"}`}
+          >
+            {hoyPos ? "+" : ""}
+            {posicion.variacionDiaria.toFixed(2)}% hoy
           </span>
         </div>
         <PriceChart ticker={posicion.ticker} mercado={posicion.mercado} />
@@ -86,7 +105,10 @@ export default async function TickerPage({
             Mi posición
           </div>
           <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-            <Stat label="Cantidad" value={posicion.cantidad.toLocaleString("es-AR")} />
+            <Stat
+              label="Cantidad"
+              value={posicion.cantidad.toLocaleString("es-AR")}
+            />
             <Stat label="P. Prom. Compra" value={fmtMoney(posicion.ppc)} />
             <Stat label="Valuación" value={fmtMoney(posicion.valuacion)} />
             <Stat
@@ -105,12 +127,15 @@ export default async function TickerPage({
           {cotizacion ? (
             <div className="grid grid-cols-2 gap-x-6 gap-y-5">
               <Stat label="Apertura" value={fmtMoney(cotizacion.apertura)} />
-              <Stat label="Cierre anterior" value={fmtMoney(cotizacion.cierreAnterior)} />
+              <Stat
+                label="Cierre anterior"
+                value={fmtMoney(cotizacion.cierreAnterior)}
+              />
               <Stat label="Máximo" value={fmtMoney(cotizacion.maximo)} />
               <Stat label="Mínimo" value={fmtMoney(cotizacion.minimo)} />
               <Stat
                 label="Monto operado"
-                value={"$" + Math.round(cotizacion.montoOperado).toLocaleString("es-AR")}
+                value={fmtMoney(cotizacion.montoOperado)}
               />
               <Stat
                 label="Operaciones"
@@ -118,10 +143,12 @@ export default async function TickerPage({
               />
             </div>
           ) : (
-            <p className="text-[13px] text-text3">No se pudo cargar la cotización.</p>
+            <p className="text-[13px] text-text3">
+              No se pudo cargar la cotización.
+            </p>
           )}
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

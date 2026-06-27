@@ -2,9 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { getCotizacionDetalle, getOperacionesByTicker } from "@/lib/iol-actions";
-import type { DashboardPosicion, IOLCotizacionDetalle, IOLOperacion } from "@/lib/iol-types";
-import { fmtMoney, fmtPct, fmtPrice, fmtFecha, getMonedaPrefix } from "@/lib/fmt";
+import {
+  getCotizacionDetalle,
+  getOperacionesByTicker,
+} from "@/lib/iol-actions";
+import type {
+  DashboardPosicion,
+  IOLCotizacionDetalle,
+  IOLOperacion,
+} from "@/lib/iol-types";
+import {
+  fmtMoney,
+  fmtPct,
+  fmtPrice,
+  fmtFecha,
+  getMonedaPrefix,
+} from "@/lib/fmt";
 import { getBadge, tipoLabel } from "@/lib/instrument";
 import { getTipoCls } from "@/lib/operacion";
 import { DrawerSection, DrawerRow } from "./DrawerPrimitives";
@@ -26,21 +39,30 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (!posicion) { setCotiz(null); setOps([]); return; }
+    if (!posicion) {
+      setCotiz(null);
+      setOps([]);
+      return;
+    }
     setLoading(true);
     setError(false);
     Promise.all([
       getCotizacionDetalle(posicion.mercado, posicion.ticker),
       getOperacionesByTicker(posicion.ticker),
     ])
-      .then(([c, o]) => { setCotiz(c); setOps(o); })
+      .then(([c, o]) => {
+        setCotiz(c);
+        setOps(o);
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [posicion]);
 
   useEffect(() => {
     if (!posicion) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [posicion, onClose]);
@@ -65,7 +87,9 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
               <>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[17px] font-bold text-text1">{posicion.ticker}</span>
+                    <span className="text-[17px] font-bold text-text1">
+                      {posicion.ticker}
+                    </span>
                     {badge && (
                       <span
                         className="text-[9px] font-semibold px-1.5 py-px rounded-[3px] tracking-[0.3px]"
@@ -75,23 +99,30 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
                       </span>
                     )}
                   </div>
-                  <div className="text-[12px] text-text3 mt-0.5 truncate max-w-[280px]">{posicion.nombre}</div>
+                  <div className="text-[12px] text-text3 mt-0.5 truncate max-w-[280px]">
+                    {posicion.nombre}
+                  </div>
                 </div>
               </>
             )}
           </div>
-          <button onClick={onClose} className="text-text3 hover:text-text1 transition-colors p-1 shrink-0">
+          <button
+            onClick={onClose}
+            className="text-text3 hover:text-text1 transition-colors p-1 shrink-0"
+          >
             <X size={18} />
           </button>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
-
           {loading && (
             <div className="flex flex-col gap-3 pt-2">
               {Array.from({ length: 10 }).map((_, i) => (
-                <div key={i} className="flex justify-between py-2.5 border-b border-border-light">
+                <div
+                  key={i}
+                  className="flex justify-between py-2.5 border-b border-border-light"
+                >
                   <div className="shimmer h-3.5 w-24" />
                   <div className="shimmer h-3.5 w-28" />
                 </div>
@@ -113,25 +144,44 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
                   <div className="text-[26px] font-bold text-text1 tabular-nums">
                     {fmtPrice(cotiz.ultimoPrecio)}
                   </div>
-                  <div className={`text-[13px] font-semibold tabular-nums mt-0.5 ${cotiz.variacion >= 0 ? "text-profit" : "text-loss"}`}>
+                  <div
+                    className={`text-[13px] font-semibold tabular-nums mt-0.5 ${cotiz.variacion >= 0 ? "text-profit" : "text-loss"}`}
+                  >
                     {fmtPct(cotiz.variacion)}
-                    <span className="text-text3 font-normal ml-1.5 text-[11px]">{cotiz.tendencia}</span>
+                    <span className="text-text3 font-normal ml-1.5 text-[11px]">
+                      {cotiz.tendencia}
+                    </span>
                   </div>
                 </div>
               )}
 
               {/* Tu posición */}
               <DrawerSection title="Tu posición">
-                <DrawerRow label="Cantidad" value={fmtCant(posicion.cantidad)} mono />
+                <DrawerRow
+                  label="Cantidad"
+                  value={fmtCant(posicion.cantidad)}
+                  mono
+                />
                 <DrawerRow label="PPC" value={fmtPrice(posicion.ppc)} mono />
-                <DrawerRow label="Valuación" value={fmtMoney(posicion.valuacion)} mono />
+                <DrawerRow
+                  label="Valuación"
+                  value={fmtMoney(posicion.valuacion)}
+                  mono
+                />
                 <DrawerRow
                   label="P&L total"
                   value={
-                    <span className={posicion.pnlPorcentaje >= 0 ? "text-profit" : "text-loss"}>
+                    <span
+                      className={
+                        posicion.pnlPorcentaje >= 0
+                          ? "text-profit"
+                          : "text-loss"
+                      }
+                    >
                       {fmtPct(posicion.pnlPorcentaje)}
                       <span className="block text-[11px] opacity-75">
-                        {posicion.pnlPesos >= 0 ? "+" : ""}{fmtMoney(posicion.pnlPesos)}
+                        {posicion.pnlPesos >= 0 ? "+" : ""}
+                        {fmtMoney(posicion.pnlPesos)}
                       </span>
                     </span>
                   }
@@ -142,12 +192,32 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
               {/* Hoy */}
               {cotiz && (
                 <DrawerSection title="Hoy">
-                  <DrawerRow label="Apertura"        value={fmtPrice(cotiz.apertura)}       mono />
-                  <DrawerRow label="Máximo"          value={fmtPrice(cotiz.maximo)}         mono />
-                  <DrawerRow label="Mínimo"          value={fmtPrice(cotiz.minimo)}         mono />
-                  <DrawerRow label="Cierre anterior" value={fmtPrice(cotiz.cierreAnterior)} mono />
+                  <DrawerRow
+                    label="Apertura"
+                    value={fmtPrice(cotiz.apertura)}
+                    mono
+                  />
+                  <DrawerRow
+                    label="Máximo"
+                    value={fmtPrice(cotiz.maximo)}
+                    mono
+                  />
+                  <DrawerRow
+                    label="Mínimo"
+                    value={fmtPrice(cotiz.minimo)}
+                    mono
+                  />
+                  <DrawerRow
+                    label="Cierre anterior"
+                    value={fmtPrice(cotiz.cierreAnterior)}
+                    mono
+                  />
                   {cotiz.montoOperado > 0 && (
-                    <DrawerRow label="Monto operado" value={fmtMoney(cotiz.montoOperado)} mono />
+                    <DrawerRow
+                      label="Monto operado"
+                      value={fmtMoney(cotiz.montoOperado)}
+                      mono
+                    />
                   )}
                 </DrawerSection>
               )}
@@ -156,17 +226,32 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
               {cotiz?.puntas && cotiz.puntas.length > 0 && (
                 <DrawerSection title="Puntas">
                   {cotiz.puntas.slice(0, 3).map((p, i) => (
-                    <div key={i} className="flex justify-between items-center py-2.5 border-b border-border-light last:border-0">
+                    <div
+                      key={i}
+                      className="flex justify-between items-center py-2.5 border-b border-border-light last:border-0"
+                    >
                       <div className="flex gap-4">
                         <div>
-                          <div className="text-[10px] text-text3 font-medium mb-0.5">Compra</div>
-                          <div className="text-[13px] font-semibold text-profit tabular-nums">{fmtPrice(p.precioCompra)}</div>
-                          <div className="text-[10px] text-text3 tabular-nums">{fmtCant(p.cantidadCompra)} ud.</div>
+                          <div className="text-[10px] text-text3 font-medium mb-0.5">
+                            Compra
+                          </div>
+                          <div className="text-[13px] font-semibold text-profit tabular-nums">
+                            {fmtPrice(p.precioCompra)}
+                          </div>
+                          <div className="text-[10px] text-text3 tabular-nums">
+                            {fmtCant(p.cantidadCompra)} ud.
+                          </div>
                         </div>
                         <div>
-                          <div className="text-[10px] text-text3 font-medium mb-0.5">Venta</div>
-                          <div className="text-[13px] font-semibold text-loss tabular-nums">{fmtPrice(p.precioVenta)}</div>
-                          <div className="text-[10px] text-text3 tabular-nums">{fmtCant(p.cantidadVenta)} ud.</div>
+                          <div className="text-[10px] text-text3 font-medium mb-0.5">
+                            Venta
+                          </div>
+                          <div className="text-[13px] font-semibold text-loss tabular-nums">
+                            {fmtPrice(p.precioVenta)}
+                          </div>
+                          <div className="text-[10px] text-text3 tabular-nums">
+                            {fmtCant(p.cantidadVenta)} ud.
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -177,7 +262,9 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
               {/* Últimas operaciones */}
               <DrawerSection title={`Operaciones (${ops.length})`}>
                 {ops.length === 0 ? (
-                  <p className="text-[12px] text-text3 py-2">Sin operaciones registradas.</p>
+                  <p className="text-[12px] text-text3 py-2">
+                    Sin operaciones registradas.
+                  </p>
                 ) : (
                   <div className="flex flex-col gap-0">
                     {ops.slice(0, 8).map((op) => {
@@ -187,9 +274,14 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
                       const monedaPrefix = getMonedaPrefix(op.moneda);
                       const total = op.montoOperado ?? op.monto;
                       return (
-                        <div key={op.numero} className="flex items-center justify-between py-2.5 border-b border-border-light last:border-0 gap-2">
+                        <div
+                          key={op.numero}
+                          className="flex items-center justify-between py-2.5 border-b border-border-light last:border-0 gap-2"
+                        >
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className={`text-[10px] font-semibold px-1.5 py-px rounded-[3px] shrink-0 ${cls}`}>
+                            <span
+                              className={`text-[10px] font-semibold px-1.5 py-px rounded-[3px] shrink-0 ${cls}`}
+                            >
                               {label || "—"}
                             </span>
                             <span className="text-[11px] text-text3 shrink-0">
@@ -199,15 +291,26 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
                           <div className="text-right shrink-0">
                             {precio != null && (
                               <div className="text-[12px] font-semibold text-text1 tabular-nums">
-                                {monedaPrefix}{precio.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                {monedaPrefix}
+                                {precio.toLocaleString("es-AR", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
                                 {cantidad != null && (
-                                  <span className="text-text3 font-normal"> × {fmtCant(cantidad)}</span>
+                                  <span className="text-text3 font-normal">
+                                    {" "}
+                                    × {fmtCant(cantidad)}
+                                  </span>
                                 )}
                               </div>
                             )}
                             {total != null && (
                               <div className="text-[10px] text-text3 tabular-nums">
-                                Total {monedaPrefix}{Math.abs(total).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                Total {monedaPrefix}
+                                {Math.abs(total).toLocaleString("es-AR", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
                               </div>
                             )}
                           </div>
