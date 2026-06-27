@@ -4,52 +4,14 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { getCotizacionDetalle, getOperacionesByTicker } from "@/lib/iol-actions";
 import type { DashboardPosicion, IOLCotizacionDetalle, IOLOperacion } from "@/lib/iol-types";
-import { fmtMoney, fmtPct } from "@/lib/fmt";
+import { fmtMoney, fmtPct, fmtPrice, fmtFecha, getMonedaPrefix } from "@/lib/fmt";
 import { getBadge, tipoLabel } from "@/lib/instrument";
 import { getTipoCls } from "@/lib/operacion";
-
-function fmtPrice(n: number) {
-  return (
-    "$" +
-    n.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  );
-}
+import { DrawerSection, DrawerRow } from "./DrawerPrimitives";
 
 function fmtCant(n: number | null | undefined) {
   if (n == null) return "—";
   return n.toLocaleString("es-AR");
-}
-
-function fmtFecha(iso: string) {
-  try {
-    const d = new Date(iso);
-    const p = (n: number) => String(n).padStart(2, "0");
-    return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
-  } catch {
-    return iso;
-  }
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="mt-5">
-      <div className="text-[10px] font-semibold text-text3 uppercase tracking-wide mb-2">
-        {title}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function Row({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) {
-  return (
-    <div className="flex justify-between items-center py-2.5 border-b border-border-light last:border-0 gap-4">
-      <span className="text-[12px] text-text3 font-medium shrink-0">{label}</span>
-      <span className={`text-[13px] text-text1 font-semibold text-right ${mono ? "tabular-nums" : ""}`}>
-        {value}
-      </span>
-    </div>
-  );
 }
 
 interface Props {
@@ -159,11 +121,11 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
               )}
 
               {/* Tu posición */}
-              <Section title="Tu posición">
-                <Row label="Cantidad" value={fmtCant(posicion.cantidad)} mono />
-                <Row label="PPC" value={fmtPrice(posicion.ppc)} mono />
-                <Row label="Valuación" value={fmtMoney(posicion.valuacion)} mono />
-                <Row
+              <DrawerSection title="Tu posición">
+                <DrawerRow label="Cantidad" value={fmtCant(posicion.cantidad)} mono />
+                <DrawerRow label="PPC" value={fmtPrice(posicion.ppc)} mono />
+                <DrawerRow label="Valuación" value={fmtMoney(posicion.valuacion)} mono />
+                <DrawerRow
                   label="P&L total"
                   value={
                     <span className={posicion.pnlPorcentaje >= 0 ? "text-profit" : "text-loss"}>
@@ -175,24 +137,24 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
                   }
                   mono
                 />
-              </Section>
+              </DrawerSection>
 
               {/* Hoy */}
               {cotiz && (
-                <Section title="Hoy">
-                  <Row label="Apertura"        value={fmtPrice(cotiz.apertura)}       mono />
-                  <Row label="Máximo"          value={fmtPrice(cotiz.maximo)}         mono />
-                  <Row label="Mínimo"          value={fmtPrice(cotiz.minimo)}         mono />
-                  <Row label="Cierre anterior" value={fmtPrice(cotiz.cierreAnterior)} mono />
+                <DrawerSection title="Hoy">
+                  <DrawerRow label="Apertura"        value={fmtPrice(cotiz.apertura)}       mono />
+                  <DrawerRow label="Máximo"          value={fmtPrice(cotiz.maximo)}         mono />
+                  <DrawerRow label="Mínimo"          value={fmtPrice(cotiz.minimo)}         mono />
+                  <DrawerRow label="Cierre anterior" value={fmtPrice(cotiz.cierreAnterior)} mono />
                   {cotiz.montoOperado > 0 && (
-                    <Row label="Monto operado" value={fmtMoney(cotiz.montoOperado)} mono />
+                    <DrawerRow label="Monto operado" value={fmtMoney(cotiz.montoOperado)} mono />
                   )}
-                </Section>
+                </DrawerSection>
               )}
 
               {/* Puntas */}
               {cotiz?.puntas && cotiz.puntas.length > 0 && (
-                <Section title="Puntas">
+                <DrawerSection title="Puntas">
                   {cotiz.puntas.slice(0, 3).map((p, i) => (
                     <div key={i} className="flex justify-between items-center py-2.5 border-b border-border-light last:border-0">
                       <div className="flex gap-4">
@@ -209,11 +171,11 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
                       </div>
                     </div>
                   ))}
-                </Section>
+                </DrawerSection>
               )}
 
               {/* Últimas operaciones */}
-              <Section title={`Operaciones (${ops.length})`}>
+              <DrawerSection title={`Operaciones (${ops.length})`}>
                 {ops.length === 0 ? (
                   <p className="text-[12px] text-text3 py-2">Sin operaciones registradas.</p>
                 ) : (
@@ -222,7 +184,7 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
                       const { cls, label } = getTipoCls(op.tipo);
                       const precio = op.precioOperado ?? op.precio;
                       const cantidad = op.cantidadOperada ?? op.cantidad;
-                      const monedaPrefix = op.moneda?.toLowerCase().includes("dolar") ? "US$" : "$";
+                      const monedaPrefix = getMonedaPrefix(op.moneda);
                       const total = op.montoOperado ?? op.monto;
                       return (
                         <div key={op.numero} className="flex items-center justify-between py-2.5 border-b border-border-light last:border-0 gap-2">
@@ -254,7 +216,7 @@ export function PosicionDrawer({ posicion, onClose }: Props) {
                     })}
                   </div>
                 )}
-              </Section>
+              </DrawerSection>
             </div>
           )}
         </div>

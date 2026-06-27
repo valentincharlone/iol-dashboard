@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import type { CotizacionItem } from "@/lib/iol-types";
 import { fmtMoney, fmtPct } from "@/lib/fmt";
 import { getBadge, tipoLabel } from "@/lib/instrument";
+import { TH_BASE, TD_BASE } from "@/lib/ui";
 
 interface Props {
   items: CotizacionItem[];
@@ -44,10 +45,6 @@ const COLUMNS: { key: SortKey; label: string; left?: true }[] = [
   { key: "monto", label: "Monto op." },
 ];
 
-const TH_BASE =
-  "text-[10px] font-semibold text-text3 uppercase tracking-[0.6px] py-2.5 px-3 border-b border-border whitespace-nowrap cursor-pointer select-none";
-const TD_BASE =
-  "py-3 px-3 border-b border-border-light text-[13px] tabular-nums text-right whitespace-nowrap";
 
 export function CotizacionesTable({ items }: Props) {
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({

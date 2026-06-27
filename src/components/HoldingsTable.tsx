@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { DashboardPosicion } from "@/lib/iol-types";
 import { fmtMoney, fmtPct } from "@/lib/fmt";
-import { getBadge, tipoLabel } from "@/lib/instrument";
+import { getBadge, tipoLabel, tipoKey } from "@/lib/instrument";
 
 interface Props {
   posiciones: DashboardPosicion[];
@@ -55,6 +55,7 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
   const [density, setDensity] = useState<Density>("normal");
   const [sortBy, setSortBy] = useState<SortBy>("valuacion");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [filterTipo, setFilterTipo] = useState<string>("all");
   const [hovRow, setHovRow] = useState<number | null>(null);
   const [visibleCols, setVisibleCols] = useState<Set<ColKey>>(
     new Set<ColKey>([
@@ -69,6 +70,15 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
   );
   const [colsOpen, setColsOpen] = useState(false);
   const colsRef = useRef<HTMLDivElement>(null);
+
+  const availableTipos = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const p of posiciones) {
+      const k = tipoKey(p.tipo);
+      if (!seen.has(k)) seen.set(k, tipoLabel(p.tipo));
+    }
+    return Array.from(seen.entries());
+  }, [posiciones]);
 
   useEffect(() => {
     if (!colsOpen) return;
@@ -125,7 +135,12 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
     return arr;
   }, [posiciones, sortBy, sortDir]);
 
-  const displayed = limit ? sorted.slice(0, limit) : sorted;
+  const filtered = useMemo(
+    () => filterTipo === "all" ? sorted : sorted.filter(p => tipoKey(p.tipo) === filterTipo),
+    [sorted, filterTipo],
+  );
+
+  const displayed = limit ? filtered.slice(0, limit) : filtered;
 
   const maxWeight =
     posiciones.length > 0
@@ -171,11 +186,14 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
     <>
     <div className="bg-card rounded-card shadow-sm overflow-clip">
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border-light flex-wrap gap-3">
+      <div className="border-b border-border-light">
+      <div className="flex items-center justify-between px-5 py-4 flex-wrap gap-3">
         <div className="flex items-center gap-2">
           <span className="text-[15px] font-semibold text-text1">Holdings</span>
           <span className="text-[12px] text-text3">
-            {posiciones.length} posiciones
+            {filterTipo !== "all"
+              ? `${filtered.length} / ${posiciones.length} posiciones`
+              : `${posiciones.length} posiciones`}
           </span>
         </div>
 
@@ -227,6 +245,36 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Filter pills */}
+      {!limit && availableTipos.length > 1 && (
+        <div className="flex items-center gap-1.5 px-5 pt-1 pb-3 flex-wrap">
+          <button
+            onClick={() => setFilterTipo("all")}
+            className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition-colors ${
+              filterTipo === "all"
+                ? "bg-brand-muted text-brand border-brand-border"
+                : "bg-card text-text3 border-border hover:bg-surface2"
+            }`}
+          >
+            Todos
+          </button>
+          {availableTipos.map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setFilterTipo(key)}
+              className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition-colors ${
+                filterTipo === key
+                  ? "bg-brand-muted text-brand border-brand-border"
+                  : "bg-card text-text3 border-border hover:bg-surface2"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
       </div>
 
       {/* Table */}

@@ -24,3 +24,39 @@ const ESTADO_CLS: Record<string, string> = {
 export function getEstadoCls(estado: string | null | undefined): string {
   return ESTADO_CLS[estado != null ? String(estado).toLowerCase() : ""] ?? "text-text3";
 }
+
+const ENUM_LABELS: Record<string, string> = {
+  precio_limite:          "Precio límite",
+  precio_mercado:         "Precio mercado",
+  a24horas:               "24 horas",
+  a48horas:               "48 horas",
+  a72horas:               "72 horas",
+  inmediata:              "Inmediata",
+  sinvalor:               "—",
+  peso_argentino:         "Peso argentino",
+  dolar_estadounidense:   "Dólar estadounidense",
+  dolar_bna:              "Dólar BNA",
+  dolar_bolsa:            "Dólar bolsa",
+};
+
+export function fmtEnum(s?: string | null): string {
+  if (!s) return "—";
+  return ENUM_LABELS[s.toLowerCase()] ?? s.replace(/_/g, " ");
+}
+
+const ESTADO_LABELS: Record<string, string> = {
+  iniciada:                                              "Iniciada",
+  en_proceso:                                            "En proceso",
+  parcialmente_terminada:                                "Parcialmente terminada",
+  terminada:                                             "Terminada",
+  cancelada:                                             "Cancelada",
+  pendiente_cancelacion:                                 "Pendiente de cancelación",
+  cancelada_por_vencimiento_validez:                     "Cancelada por vencimiento",
+  parcialmente_terminada_con_pedido_cancelacion:         "Parcial con cancelación",
+  en_modificacion:                                       "En modificación",
+};
+
+export function fmtEstado(s?: string | null): string {
+  if (!s) return "—";
+  return ESTADO_LABELS[s.toLowerCase()] ?? s.replace(/_/g, " ");
+}

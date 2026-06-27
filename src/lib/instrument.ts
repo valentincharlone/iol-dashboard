@@ -1,5 +1,17 @@
 // Lógica compartida para clasificar y colorear tipos de instrumentos IOL
 
+export const TIPO_KEYS = [
+  "cedear", "accion", "bono", "fci", "obligacion", "caucion", "opcion",
+] as const;
+
+export function tipoKey(tipo: string): string {
+  const key = tipo.toLowerCase();
+  for (const k of TIPO_KEYS) {
+    if (key.includes(k)) return k;
+  }
+  return "otro";
+}
+
 const BADGE_MAP: Record<string, { bg: string; text: string }> = {
   cedear:    { bg: "var(--badge-cedear-bg)",     text: "var(--badge-cedear-text)"     },
   accion:    { bg: "var(--badge-accion-bg)",     text: "var(--badge-accion-text)"     },

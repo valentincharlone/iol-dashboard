@@ -4,18 +4,9 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { getOperacionDetalle } from "@/lib/iol-actions";
 import type { IOLOperacionDetalle } from "@/lib/iol-types";
-import { getTipoCls, getEstadoCls } from "@/lib/operacion";
-
-function fmtFecha(iso?: string | null) {
-  if (!iso) return "—";
-  try {
-    const d = new Date(iso);
-    const p = (n: number) => String(n).padStart(2, "0");
-    return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
-  } catch {
-    return iso;
-  }
-}
+import { getTipoCls, getEstadoCls, fmtEnum, fmtEstado } from "@/lib/operacion";
+import { fmtFechaHora, getMonedaPrefix } from "@/lib/fmt";
+import { DrawerSection, DrawerRow } from "./DrawerPrimitives";
 
 function fmtNum(n: number | null | undefined, prefix = "$") {
   if (n == null) return "—";
@@ -25,62 +16,6 @@ function fmtNum(n: number | null | undefined, prefix = "$") {
 function fmtCant(n: number | null | undefined) {
   if (n == null) return "—";
   return n.toLocaleString("es-AR");
-}
-
-const ENUM_LABELS: Record<string, string> = {
-  precio_limite:          "Precio límite",
-  precio_mercado:         "Precio mercado",
-  a24horas:               "24 horas",
-  a48horas:               "48 horas",
-  a72horas:               "72 horas",
-  inmediata:              "Inmediata",
-  sinvalor:               "—",
-  peso_argentino:         "Peso argentino",
-  dolar_estadounidense:   "Dólar estadounidense",
-  dolar_bna:              "Dólar BNA",
-  dolar_bolsa:            "Dólar bolsa",
-};
-
-function fmtEnum(s: string | null | undefined) {
-  if (!s) return "—";
-  return ENUM_LABELS[s.toLowerCase()] ?? s.replace(/_/g, " ");
-}
-
-const ESTADO_LABELS: Record<string, string> = {
-  iniciada:                                              "Iniciada",
-  en_proceso:                                            "En proceso",
-  parcialmente_terminada:                                "Parcialmente terminada",
-  terminada:                                             "Terminada",
-  cancelada:                                             "Cancelada",
-  pendiente_cancelacion:                                 "Pendiente de cancelación",
-  cancelada_por_vencimiento_validez:                     "Cancelada por vencimiento",
-  parcialmente_terminada_con_pedido_cancelacion:         "Parcial con cancelación",
-  en_modificacion:                                       "En modificación",
-};
-
-function fmtEstado(s: string | null | undefined) {
-  if (!s) return "—";
-  return ESTADO_LABELS[s.toLowerCase()] ?? s.replace(/_/g, " ");
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="mt-4">
-      <div className="text-[10px] font-semibold text-text3 uppercase tracking-wide mb-2">{title}</div>
-      {children}
-    </div>
-  );
-}
-
-function Row({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) {
-  return (
-    <div className="flex justify-between items-start py-3 border-b border-border-light last:border-0 gap-4">
-      <span className="text-[12px] text-text3 font-medium shrink-0">{label}</span>
-      <span className={`text-[13px] text-text1 font-semibold text-right ${mono ? "tabular-nums" : ""}`}>
-        {value}
-      </span>
-    </div>
-  );
 }
 
 interface Props {
@@ -153,7 +88,7 @@ export function OperacionDrawer({ numero, onClose }: Props) {
           {op && !loading && (() => {
             const { cls: tipoCls, label: tipoLabel } = getTipoCls(op.tipo);
             const estadoCls = getEstadoCls(op.estadoActual);
-            const monedaPrefix = op.moneda?.toLowerCase().includes("dolar") ? "US$" : "$";
+            const monedaPrefix = getMonedaPrefix(op.moneda);
             const isDividendo = !op.tipo || op.tipo === "";
             const aranceles = op.aranceles?.filter(a => a.neto !== 0) ?? [];
 
@@ -173,52 +108,52 @@ export function OperacionDrawer({ numero, onClose }: Props) {
                   <div className="text-[12px] text-text3 mt-0.5">{op.mercado}</div>
                 </div>
 
-                <Section title="Fechas">
-                  <Row label="Fecha de alta"   value={fmtFecha(op.fechaAlta)}    />
-                  <Row label="Fecha operada"   value={fmtFecha(op.fechaOperado)} />
-                  {op.validez && <Row label="Validez hasta" value={fmtFecha(op.validez)} />}
-                </Section>
+                <DrawerSection title="Fechas">
+                  <DrawerRow label="Fecha de alta"   value={fmtFechaHora(op.fechaAlta)}    />
+                  <DrawerRow label="Fecha operada"   value={fmtFechaHora(op.fechaOperado)} />
+                  {op.validez && <DrawerRow label="Validez hasta" value={fmtFechaHora(op.validez)} />}
+                </DrawerSection>
 
                 {!isDividendo && (
-                  <Section title="Cantidades y precios">
-                    <Row label="Cantidad" value={fmtCant(op.cantidad)} mono />
-                    <Row label="Precio"   value={fmtNum(op.precio, monedaPrefix)} mono />
-                  </Section>
+                  <DrawerSection title="Cantidades y precios">
+                    <DrawerRow label="Cantidad" value={fmtCant(op.cantidad)} mono />
+                    <DrawerRow label="Precio"   value={fmtNum(op.precio, monedaPrefix)} mono />
+                  </DrawerSection>
                 )}
 
-                <Section title="Totales">
-                  <Row label="Monto"            value={fmtNum(op.monto, monedaPrefix)}           mono />
-                  <Row label="Monto operado"    value={fmtNum(op.montoOperacion, monedaPrefix)}  mono />
+                <DrawerSection title="Totales">
+                  <DrawerRow label="Monto"            value={fmtNum(op.monto, monedaPrefix)}           mono />
+                  <DrawerRow label="Monto operado"    value={fmtNum(op.montoOperacion, monedaPrefix)}  mono />
                   {op.fondosParaOperacion != null && (
-                    <Row label="Fondos requeridos" value={fmtNum(op.fondosParaOperacion, monedaPrefix)} mono />
+                    <DrawerRow label="Fondos requeridos" value={fmtNum(op.fondosParaOperacion, monedaPrefix)} mono />
                   )}
-                </Section>
+                </DrawerSection>
 
                 {aranceles.length > 0 && (
-                  <Section title="Aranceles">
+                  <DrawerSection title="Aranceles">
                     {aranceles.map((a, i) => (
-                      <Row
+                      <DrawerRow
                         key={i}
                         label={a.tipo || "Arancel"}
-                        value={fmtNum(a.neto + a.iva, a.moneda?.toLowerCase().includes("dolar") ? "US$" : "$")}
+                        value={fmtNum(a.neto + a.iva, getMonedaPrefix(a.moneda))}
                         mono
                       />
                     ))}
                     {op.arancelesARS != null && op.arancelesARS !== 0 && (
-                      <Row label="Total ARS" value={fmtNum(op.arancelesARS)} mono />
+                      <DrawerRow label="Total ARS" value={fmtNum(op.arancelesARS)} mono />
                     )}
                     {op.arancelesUSD != null && op.arancelesUSD !== 0 && (
-                      <Row label="Total USD" value={fmtNum(op.arancelesUSD, "US$")} mono />
+                      <DrawerRow label="Total USD" value={fmtNum(op.arancelesUSD, "US$")} mono />
                     )}
-                  </Section>
+                  </DrawerSection>
                 )}
 
                 {!isDividendo && (
-                  <Section title="Condiciones">
-                    <Row label="Modalidad" value={fmtEnum(op.modalidad)} />
-                    <Row label="Plazo"     value={fmtEnum(op.plazo)} />
-                    <Row label="Moneda"    value={fmtEnum(op.moneda)} />
-                  </Section>
+                  <DrawerSection title="Condiciones">
+                    <DrawerRow label="Modalidad" value={fmtEnum(op.modalidad)} />
+                    <DrawerRow label="Plazo"     value={fmtEnum(op.plazo)} />
+                    <DrawerRow label="Moneda"    value={fmtEnum(op.moneda)} />
+                  </DrawerSection>
                 )}
               </div>
             );

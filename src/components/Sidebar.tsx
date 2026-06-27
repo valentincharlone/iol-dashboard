@@ -16,6 +16,7 @@ import {
   PanelLeft,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { IOL_LOGO_GRADIENT } from "@/lib/config";
 
 const NAV_MAIN = [
   { href: "/dashboard", label: "Portafolio", icon: <PieChart size={18} /> },
@@ -91,14 +92,14 @@ export function Sidebar({ collapsed, onToggle, isMobile }: Props) {
           title="Expandir sidebar"
           className="flex items-center justify-center border-b border-border min-h-16 cursor-pointer"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4338CA] to-[#818CF8] flex items-center justify-center text-white font-bold text-xs tracking-tight">
+          <div className={`w-8 h-8 rounded-lg ${IOL_LOGO_GRADIENT} flex items-center justify-center text-white font-bold text-xs tracking-tight`}>
             IOL
           </div>
         </div>
       ) : (
         <div className="flex items-center justify-between px-4 py-4 border-b border-border min-h-16 gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4338CA] to-[#818CF8] flex items-center justify-center text-white font-bold text-xs tracking-tight shrink-0">
+            <div className={`w-8 h-8 rounded-lg ${IOL_LOGO_GRADIENT} flex items-center justify-center text-white font-bold text-xs tracking-tight shrink-0`}>
               IOL
             </div>
             <span className="font-semibold text-[15px] text-text1 whitespace-nowrap">

@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { fmtPrice } from "@/lib/fmt";
 
 type Periodo = "1S" | "1M" | "3M" | "6M" | "1A";
 
@@ -40,15 +41,6 @@ function fmtTooltipFecha(fechaHora: string): string {
   });
 }
 
-function fmtPrecio(n: number): string {
-  return (
-    "$" +
-    n.toLocaleString("es-AR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
-  );
-}
 
 function CustomTooltip({
   active,
@@ -62,7 +54,7 @@ function CustomTooltip({
   return (
     <div className="bg-card border border-border rounded-[10px] shadow-md px-3 py-2.5 text-[12px]">
       <div className="text-text3 mb-1">{fmtTooltipFecha(d.fechaHora)}</div>
-      <div className="font-bold text-text1">{fmtPrecio(d.ultimoPrecio)}</div>
+      <div className="font-bold text-text1">{fmtPrice(d.ultimoPrecio)}</div>
       <div
         className={`text-[11px] mt-0.5 ${d.variacion >= 0 ? "text-profit" : "text-loss"}`}
       >

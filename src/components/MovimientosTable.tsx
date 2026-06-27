@@ -4,6 +4,9 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { IOLOperacion } from "@/lib/iol-types";
 import { getTipoCls, getEstadoCls } from "@/lib/operacion";
+import { fmtFechaHora, fmtPrice, toDateInput, getMonedaPrefix } from "@/lib/fmt";
+import { PERIODOS_MOVIMIENTOS } from "@/lib/dates";
+import { filterBtnCls, DATE_INPUT_CLS, TH_BASE, TD_BASE, TD_LEFT } from "@/lib/ui";
 import { OperacionDrawer } from "./OperacionDrawer";
 
 interface Props {
@@ -12,64 +15,12 @@ interface Props {
   defaultHasta: string;
 }
 
-function fmtMoney(n: number, moneda?: string | null) {
-  const prefix = moneda?.toLowerCase().includes("dolar") ? "US$" : "$";
-  return (
-    prefix +
-    Math.abs(n).toLocaleString("es-AR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
-  );
-}
-
-function fmtPrecio(n: number) {
-  return (
-    "$" +
-    n.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  );
-}
-
 function isDividendo(tipo: string) {
   return tipo.toLowerCase().includes("dividendo");
 }
 
-function fmtFecha(iso: string) {
-  try {
-    const d = new Date(iso);
-    const p = (n: number) => String(n).padStart(2, "0");
-    return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
-  } catch {
-    return iso;
-  }
-}
-
-
 type SortCol = "fecha" | "activo" | "total";
 type SortDir = "asc" | "desc";
-
-const PERIODOS = [
-  { label: "1 mes",   days: 30  },
-  { label: "3 meses", days: 90  },
-  { label: "6 meses", days: 180 },
-  { label: "Todo",    days: 0   },
-];
-
-function toDateInput(d: Date) {
-  return d.toISOString().split("T")[0];
-}
-
-const TH_BASE   = "text-[10px] font-semibold text-text3 uppercase tracking-[0.6px] py-2.5 px-3 border-b border-border whitespace-nowrap cursor-pointer select-none";
-const TD_BASE   = "py-3 px-3 border-b border-border-light text-[13px] tabular-nums text-right whitespace-nowrap";
-const TD_LEFT   = "py-3 px-3 border-b border-border-light text-[13px] tabular-nums text-left  whitespace-nowrap";
-
-function filterBtnCls(active: boolean) {
-  return `px-3.5 py-[5px] rounded-md text-[12px] font-medium cursor-pointer border font-[inherit] transition-colors ${
-    active
-      ? "bg-brand-muted text-brand border-brand-border"
-      : "bg-card text-text2 border-border hover:bg-surface2"
-  }`;
-}
 
 export function MovimientosTable({ operaciones, defaultDesde, defaultHasta }: Props) {
   const router = useRouter();
@@ -90,7 +41,7 @@ export function MovimientosTable({ operaciones, defaultDesde, defaultHasta }: Pr
 
   function applyPeriod(idx: number) {
     setActivePeriod(idx);
-    const { days } = PERIODOS[idx];
+    const { days } = PERIODOS_MOVIMIENTOS[idx];
     const newDesde = days === 0 ? "" : toDateInput(new Date(Date.now() - days * 86_400_000));
     setDesde(newDesde);
     setHasta("");
@@ -131,8 +82,6 @@ export function MovimientosTable({ operaciones, defaultDesde, defaultHasta }: Pr
     return <span className="ml-0.5 text-[10px]">{sortDir === "asc" ? "↑" : "↓"}</span>;
   }
 
-  const dateCls = "text-[12px] px-2 py-[5px] rounded-lg border border-border outline-none font-[inherit] text-text1 bg-card focus:border-brand transition-colors";
-
   return (
     <>
     <OperacionDrawer numero={selectedNumero} onClose={() => setSelectedNumero(null)} />
@@ -156,7 +105,7 @@ export function MovimientosTable({ operaciones, defaultDesde, defaultHasta }: Pr
 
           {/* Períodos */}
           <div className="flex gap-1">
-            {PERIODOS.map((p, idx) => (
+            {PERIODOS_MOVIMIENTOS.map((p, idx) => (
               <button key={p.label} onClick={() => applyPeriod(idx)} className={filterBtnCls(activePeriod === idx)}>
                 {p.label}
               </button>
@@ -170,7 +119,7 @@ export function MovimientosTable({ operaciones, defaultDesde, defaultHasta }: Pr
               value={desde}
               onChange={(e) => setDesde(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && buscar()}
-              className={dateCls}
+              className={DATE_INPUT_CLS}
             />
             <span className="text-[12px] text-text3">—</span>
             <input
@@ -178,7 +127,7 @@ export function MovimientosTable({ operaciones, defaultDesde, defaultHasta }: Pr
               value={hasta}
               onChange={(e) => setHasta(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && buscar()}
-              className={dateCls}
+              className={DATE_INPUT_CLS}
             />
             <button
               onClick={buscar}
@@ -223,6 +172,7 @@ export function MovimientosTable({ operaciones, defaultDesde, defaultHasta }: Pr
             {filtered.map((op, i) => {
               const { cls: tipoCls, label: tipoLabel } = getTipoCls(op.tipo);
               const estadoCls = getEstadoCls(op.estado);
+              const monedaPrefix = getMonedaPrefix(op.moneda);
               return (
                 <tr
                   key={op.numero}
@@ -231,7 +181,7 @@ export function MovimientosTable({ operaciones, defaultDesde, defaultHasta }: Pr
                   onMouseLeave={() => setHovRow(null)}
                   className={`cursor-pointer ${hovRow === i ? "bg-rowHover" : "bg-transparent"}`}
                 >
-                  <td className={`${TD_LEFT} pl-5 text-text2`}>{fmtFecha(op.fechaOrden)}</td>
+                  <td className={`${TD_LEFT} pl-5 text-text2`}>{fmtFechaHora(op.fechaOrden)}</td>
                   <td className={TD_LEFT}>
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-[4px] ${tipoCls}`}>
                       {tipoLabel}
@@ -247,11 +197,11 @@ export function MovimientosTable({ operaciones, defaultDesde, defaultHasta }: Pr
                       : ((op.cantidadOperada || op.cantidad) ?? 0).toLocaleString("es-AR")}
                   </td>
                   <td className={`${TD_BASE} ${isDividendo(op.tipo) ? "text-text3" : ""}`}>
-                    {isDividendo(op.tipo) ? "—" : fmtPrecio(op.precioOperado || op.precio || 0)}
+                    {isDividendo(op.tipo) ? "—" : fmtPrice(op.precioOperado || op.precio || 0)}
                   </td>
                   <td className={`${TD_BASE} font-bold ${isDividendo(op.tipo) ? "text-profit" : ""}`}>
                     {op.montoOperado || op.monto
-                      ? fmtMoney(op.montoOperado || op.monto || 0, op.moneda)
+                      ? monedaPrefix + Math.abs(op.montoOperado || op.monto || 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                       : "—"}
                   </td>
                   <td className={`${TD_BASE} pr-5 font-medium ${estadoCls}`}>{op.estado}</td>

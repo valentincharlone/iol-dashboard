@@ -5,8 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
-
-const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+import { REFRESH_INTERVAL_MS, IOL_LOGO_GRADIENT } from "@/lib/config";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -75,7 +74,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             >
               <Menu size={22} />
             </button>
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#4338CA] to-[#818CF8] flex items-center justify-center text-white font-bold text-[11px]">
+            <div className={`w-7 h-7 rounded-lg ${IOL_LOGO_GRADIENT} flex items-center justify-center text-white font-bold text-[11px]`}>
               IOL
             </div>
             <span className="font-semibold text-[15px] text-text1 flex-1">
