@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { IOLOperacion } from "@/lib/iol-types";
-import { getTipoCls, getEstadoCls } from "@/lib/operacion";
+import { getTipoCls, getEstadoCls, fmtEstado } from "@/lib/operacion";
 import {
   fmtFechaHora,
   fmtPrice,
@@ -291,7 +291,7 @@ export function MovimientosTable({
                         : "—"}
                     </td>
                     <td className={`${TD_BASE} pr-5 font-medium ${estadoCls}`}>
-                      {op.estado}
+                      {fmtEstado(op.estado)}
                     </td>
                   </tr>
                 );
