@@ -2,13 +2,19 @@ export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { getPortafolio, getRealizadoAcumulado } from "@/lib/iol-actions";
+import { getPortafolio, getHistorialCalculado } from "@/lib/iol-actions";
 import { resultadoTotal } from "@/lib/ganancias";
 import { HoldingsTable } from "@/components/HoldingsTable";
 import { AllocationChart } from "@/components/AllocationChart";
 import { MarketStrip } from "@/components/MarketStrip";
 import { ValuacionCard } from "@/components/ValuacionCard";
-import { fmtMoney, fmtMoneySigned, fmtUSD, fmtPct } from "@/lib/fmt";
+import {
+  fmtMoney,
+  fmtMoneySigned,
+  fmtUSD,
+  fmtUSDSigned,
+  fmtPct,
+} from "@/lib/fmt";
 import { MarketStatusBadge } from "@/components/MarketStatusBadge";
 
 export default async function DashboardContent() {
@@ -24,11 +30,11 @@ export default async function DashboardContent() {
       variacionHoyPesos,
       cantidadPosiciones,
     },
-    realizado,
+    historial,
   ] = await Promise.all([
     getPortafolio(),
     // Si falla el historial, la card cae al rendimiento de la cartera actual
-    getRealizadoAcumulado().catch(() => null),
+    getHistorialCalculado().catch(() => null),
   ]);
 
   const topGainers = [...posiciones]
@@ -38,14 +44,19 @@ export default async function DashboardContent() {
     .sort((a, b) => a.variacionDiaria - b.variacionDiaria)
     .slice(0, 3);
   const pct = totalPnlPorcentaje;
-  const resultado = realizado
+  const resultado = historial
     ? resultadoTotal(
         {
           noRealizada: totalPnlPesos,
           costoCartera: costoTotal,
           patrimonio: estadoCuenta?.totalConEfectivo ?? null,
+          posiciones: posiciones.map((p) => ({
+            ticker: p.ticker,
+            valuacion: p.valuacion,
+          })),
+          mepHoy: historial.mepHoy,
         },
-        realizado,
+        historial.calculo,
       )
     : null;
 
@@ -120,6 +131,18 @@ export default async function DashboardContent() {
                   "realizado + no realizado"
                 )}
               </div>
+              {resultado.usd && (
+                <div className="text-[12px] tabular-nums text-text3">
+                  <span
+                    className={`font-semibold ${resultado.usd.total >= 0 ? "text-profit" : "text-loss"}`}
+                  >
+                    {fmtUSDSigned(resultado.usd.total)}
+                  </span>
+                  {resultado.usd.totalPct != null &&
+                    ` (${fmtPct(resultado.usd.totalPct)})`}{" "}
+                  en dólares
+                </div>
+              )}
               <Link
                 href="/dashboard/ganancias"
                 className="mt-auto pt-2.5 text-[11px] text-text3 hover:text-brand transition-colors"

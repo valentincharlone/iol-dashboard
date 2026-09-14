@@ -10,6 +10,7 @@ import {
   fmtPct,
   fmtPrice,
   fmtUSD,
+  fmtUSDSigned,
   fmtFecha,
   fmtDateStr,
   toDateInput,
@@ -26,11 +27,13 @@ function Componente({
   titulo,
   detalle,
   valor,
+  valorUSD,
   nota,
 }: {
   titulo: string;
   detalle: string;
   valor: number;
+  valorUSD?: number | null;
   nota?: string;
 }) {
   return (
@@ -40,10 +43,15 @@ function Componente({
         <p className="text-[12px] text-text3 mt-0.5 leading-relaxed">{detalle}</p>
         {nota && <p className="text-[11px] text-text3 mt-1 italic">{nota}</p>}
       </div>
-      <div
-        className={`text-[15px] font-bold tabular-nums whitespace-nowrap ${colorDe(valor)}`}
-      >
-        {fmtMoneySigned(valor)}
+      <div className="text-right whitespace-nowrap">
+        <div className={`text-[15px] font-bold tabular-nums ${colorDe(valor)}`}>
+          {fmtMoneySigned(valor)}
+        </div>
+        {valorUSD != null && (
+          <div className="text-[11px] text-text3 tabular-nums mt-0.5">
+            {fmtUSDSigned(valorUSD)}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -82,6 +90,29 @@ const TD_NUM =
 const TH =
   "py-2.5 px-3 text-[10px] font-semibold text-text3 uppercase tracking-wide whitespace-nowrap text-right";
 
+function GananciaCelda({
+  ganancia,
+  pct,
+  usd,
+}: {
+  ganancia: number;
+  pct: number | null;
+  usd?: boolean;
+}) {
+  return (
+    <div>
+      <div className={`text-[13px] font-semibold tabular-nums ${colorDe(ganancia)}`}>
+        {usd ? fmtUSDSigned(ganancia) : fmtMoneySigned(ganancia)}
+      </div>
+      {pct != null && (
+        <div className={`text-[10px] tabular-nums opacity-75 ${colorDe(ganancia)}`}>
+          {fmtPct(pct)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EventoRow({ e }: { e: EventoRealizado }) {
   const enUSD = e.estado === "enDolares";
 
@@ -102,40 +133,34 @@ function EventoRow({ e }: { e: EventoRealizado }) {
       <td className={TD_NUM}>
         {e.precio == null ? "—" : enUSD ? fmtUSD(e.precio) : fmtPrice(e.precio)}
       </td>
-      <td className={TD_NUM}>{e.ppc != null ? fmtPrice(e.ppc) : "—"}</td>
+      <td className={TD_NUM}>{e.ppc != null && !enUSD ? fmtPrice(e.ppc) : "—"}</td>
       <td className={`${TD_NUM} font-semibold !text-text1`}>
         {enUSD ? fmtUSD(e.recibido) : fmtMoney(e.recibido)}
       </td>
       <td className={TD_NUM}>
         {e.costo != null && !enUSD ? fmtMoney(e.costo) : "—"}
       </td>
-      <td className="py-3 px-5 text-right whitespace-nowrap">
+      <td className="py-3 px-3 text-right whitespace-nowrap">
         {e.ganancia != null ? (
-          <div>
-            <div
-              className={`text-[13px] font-semibold tabular-nums ${colorDe(e.ganancia)}`}
-            >
-              {fmtMoneySigned(e.ganancia)}
-            </div>
-            {e.gananciaPct != null && (
-              <div
-                className={`text-[10px] tabular-nums opacity-75 ${colorDe(e.ganancia)}`}
-              >
-                {fmtPct(e.gananciaPct)}
-              </div>
-            )}
-          </div>
+          <GananciaCelda ganancia={e.ganancia} pct={e.gananciaPct} />
         ) : (
           <span
             className="text-[11px] text-text3"
             title={
               enUSD
-                ? "Venta liquidada en dólares: no se puede comparar contra un costo en pesos."
+                ? "Cobrado en dólares: no se puede comparar contra un costo en pesos. Mirá la columna en US$."
                 : "No hay compras registradas en el historial para calcular el costo."
             }
           >
             {enUSD ? "Cobrado en US$" : "Sin costo de compra"}
           </span>
+        )}
+      </td>
+      <td className="py-3 px-5 text-right whitespace-nowrap">
+        {e.gananciaUSD != null ? (
+          <GananciaCelda ganancia={e.gananciaUSD} pct={e.gananciaUSDPct} usd />
+        ) : (
+          <span className="text-[11px] text-text3">—</span>
         )}
       </td>
     </tr>
@@ -154,7 +179,9 @@ export default async function GananciasPage({
     primeraOperacion,
     fechaDesde,
     fechaHasta,
+    mepHoy,
   } = await getGanancias(desde, hasta);
+  const u = r.usd;
 
   const hoy = toDateInput(new Date());
   const rango = fechaDesde
@@ -189,18 +216,42 @@ export default async function GananciasPage({
                 <span className={`font-semibold ${colorDe(r.total)}`}>
                   {fmtPct(r.totalPct)}
                 </span>{" "}
-                <span className="text-text3">sobre tu capital propio</span>
+                <span className="text-text3">sobre tu capital propio, en pesos</span>
               </div>
             )}
-            <p className="text-[12px] text-text2 mt-3 leading-relaxed">
+
+            {u && (
+              <div className="mt-4 rounded-lg bg-surface2 px-4 py-3">
+                <div className="text-[11px] font-medium text-text3 uppercase tracking-wide">
+                  En dólares MEP
+                </div>
+                <div
+                  className={`text-[22px] font-bold tabular-nums mt-0.5 ${colorDe(u.total)}`}
+                >
+                  {fmtUSDSigned(u.total)}
+                </div>
+                {u.totalPct != null && (
+                  <div className="text-[13px] tabular-nums">
+                    <span className={`font-semibold ${colorDe(u.total)}`}>
+                      {fmtPct(u.totalPct)}
+                    </span>{" "}
+                    <span className="text-text3">sobre tu capital propio, en dólares</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <p className="text-[12px] text-text2 mt-4 leading-relaxed">
               Todo lo que ganaste desde que empezaste a invertir: lo que
               todavía tenés, lo que ya vendiste y lo que cobraste.
             </p>
             {r.capitalPropio != null && r.patrimonio != null && (
               <p className="text-[11px] text-text3 mt-2 leading-relaxed">
-                Capital propio estimado: {fmtMoney(r.capitalPropio)} =
-                patrimonio actual ({fmtMoney(r.patrimonio)}) − resultado total.
-                Supone que no retiraste dinero de la cuenta.
+                Capital propio estimado: {fmtMoney(r.capitalPropio)}
+                {u?.capitalPropio != null &&
+                  ` (US$${Math.round(u.capitalPropio).toLocaleString("es-AR")})`}{" "}
+                = patrimonio actual ({fmtMoney(r.patrimonio)}) − resultado
+                total. Supone que no retiraste dinero de la cuenta.
               </p>
             )}
           </div>
@@ -212,14 +263,16 @@ export default async function GananciasPage({
                 r.noRealizadaPct != null ? fmtPct(r.noRealizadaPct) : "—"
               } que muestra IOL, sobre un costo de ${fmtMoney(r.costoCartera)}.`}
               valor={r.noRealizada}
+              valorUSD={u?.noRealizada}
             />
             <Componente
               titulo="Ganancia realizada"
               detalle="Ventas y vencimientos ya cerrados, contra lo que realmente te costó cada activo."
               valor={r.realizada}
+              valorUSD={u?.realizada}
               nota={
                 r.excluidos > 0
-                  ? `${r.excluidos} ${r.excluidos === 1 ? "operación no incluida" : "operaciones no incluidas"} (cobradas en dólares o sin compras en el historial).`
+                  ? `${r.excluidos} ${r.excluidos === 1 ? "operación no incluida" : "operaciones no incluidas"} en pesos (cobradas en dólares o sin compras en el historial).`
                   : undefined
               }
             />
@@ -227,40 +280,66 @@ export default async function GananciasPage({
               titulo="Dividendos y rentas"
               detalle="Cobrados en pesos."
               valor={r.dividendosRentasARS}
+              valorUSD={u?.dividendosRentas}
               nota={
                 r.cobrosUSD > 0
-                  ? `Además cobraste ${fmtUSD(r.cobrosUSD)} en dólares (dividendos, rentas y amortizaciones), que no se suman.`
+                  ? `Además cobraste ${fmtUSD(r.cobrosUSD)} directamente en dólares: no se suman en pesos, sí en dólares.`
                   : undefined
               }
             />
-            <div className="flex items-baseline justify-between gap-4 pt-3">
+            <div className="flex items-start justify-between gap-4 pt-3">
               <span className="text-[13px] font-bold text-text1">
                 = Resultado total
               </span>
-              <span
-                className={`text-[17px] font-bold tabular-nums ${colorDe(r.total)}`}
-              >
-                {fmtMoneySigned(r.total)}
-              </span>
+              <div className="text-right">
+                <div
+                  className={`text-[17px] font-bold tabular-nums ${colorDe(r.total)}`}
+                >
+                  {fmtMoneySigned(r.total)}
+                </div>
+                {u && (
+                  <div
+                    className={`text-[12px] font-semibold tabular-nums mt-0.5 ${colorDe(u.total)}`}
+                  >
+                    {fmtUSDSigned(u.total)}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Explicación */}
-      <section className="bg-brand-muted border border-brand-border rounded-card p-4 md:p-5">
-        <p className="text-[13px] font-semibold text-text1 mb-1">
-          ¿Por qué el rendimiento de tu cartera es menor que el resultado total?
-        </p>
-        <p className="text-[12px] text-text2 leading-relaxed">
-          El{" "}
-          {r.noRealizadaPct != null ? fmtPct(r.noRealizadaPct) : "porcentaje"}{" "}
-          de IOL mide solo las posiciones abiertas. Cuando vendés algo con
-          ganancia y reinvertís la plata, esa ganancia pasa a{" "}
-          <strong>realizada</strong> y lo que comprás entra a su precio de hoy,
-          así que arranca en 0%. El porcentaje de la cartera baja, pero la
-          ganancia no se pierde: queda sumada en el resultado total.
-        </p>
+      <section className="bg-brand-muted border border-brand-border rounded-card p-4 md:p-5 flex flex-col gap-3">
+        <div>
+          <p className="text-[13px] font-semibold text-text1 mb-1">
+            ¿Por qué el rendimiento de tu cartera es menor que el resultado total?
+          </p>
+          <p className="text-[12px] text-text2 leading-relaxed">
+            El{" "}
+            {r.noRealizadaPct != null ? fmtPct(r.noRealizadaPct) : "porcentaje"}{" "}
+            de IOL mide solo las posiciones abiertas. Cuando vendés algo con
+            ganancia y reinvertís la plata, esa ganancia pasa a{" "}
+            <strong>realizada</strong> y lo que comprás entra a su precio de
+            hoy, así que arranca en 0%. El porcentaje de la cartera baja, pero
+            la ganancia no se pierde: queda sumada en el resultado total.
+          </p>
+        </div>
+        {u && (
+          <div>
+            <p className="text-[13px] font-semibold text-text1 mb-1">
+              ¿Por qué en dólares da menos que en pesos?
+            </p>
+            <p className="text-[12px] text-text2 leading-relaxed">
+              En pesos, parte de la ganancia es solo la suba del dólar. Para
+              medirlo en moneda dura, cada compra, venta y dividendo se
+              convierte al dólar MEP de su propia fecha (precio del AL30 dividido
+              el del AL30D). Lo que tenés hoy se valúa al MEP de hoy
+              {mepHoy != null && ` (${fmtPrice(mepHoy)})`}.
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Período */}
@@ -295,7 +374,14 @@ export default async function GananciasPage({
           <Kpi
             label="Ganancia realizada"
             value={fmtMoneySigned(p.ganancia)}
-            sub={p.gananciaPct != null ? fmtPct(p.gananciaPct) : undefined}
+            sub={[
+              p.gananciaPct != null ? fmtPct(p.gananciaPct) : null,
+              p.usd && p.usd.costo > 0
+                ? `${fmtUSDSigned(p.usd.ganancia)}${p.usd.gananciaPct != null ? ` (${fmtPct(p.usd.gananciaPct)})` : ""}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" · ") || undefined}
             valueColor={p.costo > 0 ? colorDe(p.ganancia) : undefined}
           />
           <Kpi
@@ -313,9 +399,9 @@ export default async function GananciasPage({
           <p className="px-5 py-2.5 text-[11px] text-text3 border-b border-border-light">
             {p.excluidos}{" "}
             {p.excluidos === 1
-              ? "operación no entra en los totales"
-              : "operaciones no entran en los totales"}
-            : ventas cobradas en dólares o sin compras registradas en el historial.
+              ? "operación no entra en los totales en pesos"
+              : "operaciones no entran en los totales en pesos"}
+            : cobradas en dólares o sin compras registradas en el historial.
           </p>
         )}
 
@@ -325,7 +411,7 @@ export default async function GananciasPage({
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse" style={{ minWidth: 820 }}>
+            <table className="w-full border-collapse" style={{ minWidth: 920 }}>
               <thead>
                 <tr className="border-b border-border">
                   <th className={`${TH} !text-left px-5`}>Fecha</th>
@@ -335,7 +421,8 @@ export default async function GananciasPage({
                   <th className={TH}>Costo prom.</th>
                   <th className={TH}>Recibido</th>
                   <th className={TH}>Costo</th>
-                  <th className={`${TH} px-5`}>Ganancia</th>
+                  <th className={TH}>Ganancia</th>
+                  <th className={`${TH} px-5`}>En US$ MEP</th>
                 </tr>
               </thead>
               <tbody>
@@ -350,7 +437,8 @@ export default async function GananciasPage({
         <p className="px-5 py-3 text-[11px] text-text3 border-t border-border leading-relaxed">
           Costo = precio promedio ponderado de compra (el mismo método que usa
           IOL), recorriendo todo tu historial e incluyendo cambios de ratio y
-          amortizaciones. Montos informados por IOL, sin descontar aranceles.
+          amortizaciones. En US$ MEP, cada operación se convierte al dólar MEP
+          de su fecha. Montos informados por IOL, sin descontar aranceles.
         </p>
       </section>
     </PageContainer>

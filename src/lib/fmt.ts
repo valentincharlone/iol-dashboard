@@ -6,6 +6,14 @@ export function fmtMoneySigned(n: number) {
   return (n >= 0 ? "+" : "-") + fmtMoney(Math.abs(n));
 }
 
+export function fmtUSDSigned(n: number) {
+  return (
+    (n >= 0 ? "+" : "-") +
+    "US$" +
+    Math.round(Math.abs(n)).toLocaleString("es-AR")
+  );
+}
+
 export function fmtUSD(n: number) {
   return (
     "US$" +

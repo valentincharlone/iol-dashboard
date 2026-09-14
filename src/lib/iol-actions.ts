@@ -18,10 +18,13 @@ import type {
 } from "./iol-types";
 import {
   calcularRealizado,
+  crearConversorMEP,
   resultadoTotal,
   totalesRealizado,
+  type CalculoRealizado,
+  type ConversorMEP,
+  type PuntoCotizacion,
   type ResumenGanancias,
-  type TotalesRealizado,
 } from "./ganancias";
 
 
@@ -239,17 +242,51 @@ async function getHistorialOperaciones(): Promise<IOLOperacion[]> {
   return getOperaciones(HISTORIAL_DESDE, new Date().toISOString().split("T")[0]);
 }
 
+// Dólar MEP histórico = AL30 / AL30D. La serie no cambia durante el día,
+// así que se cachea en memoria del proceso.
+const MEP_DESDE = "2020-09-01"; // emisión del AL30
+const MEP_TTL_MS = 6 * 60 * 60 * 1000;
+let mepCache: { conversor: ConversorMEP; expira: number } | null = null;
+
+async function getConversorMEP(): Promise<ConversorMEP | null> {
+  if (mepCache && Date.now() < mepCache.expira) return mepCache.conversor;
+  const hoy = new Date().toISOString().split("T")[0];
+  const serie = (simbolo: string) =>
+    iolFetch<PuntoCotizacion[]>(
+      `/api/v2/bCBA/Titulos/${simbolo}/Cotizacion/seriehistorica/${MEP_DESDE}/${hoy}/sinAjustar`,
+    );
+  try {
+    const [al30, al30d] = await Promise.all([serie("AL30"), serie("AL30D")]);
+    const conversor = crearConversorMEP(al30, al30d);
+    if (conversor) mepCache = { conversor, expira: Date.now() + MEP_TTL_MS };
+    return conversor;
+  } catch {
+    return null;
+  }
+}
+
+async function getMEPHoy(): Promise<number | null> {
+  try {
+    const valor = await iolFetch<number>("/api/v2/Cotizaciones/MEP/AL30");
+    return Number.isFinite(valor) && valor > 0 ? valor : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getGanancias(
   desde?: string,
   hasta?: string,
 ): Promise<ResumenGanancias> {
-  const [ops, portafolio, cuenta] = await Promise.all([
+  const [ops, portafolio, cuenta, mep, mepHoy] = await Promise.all([
     getHistorialOperaciones(),
     iolFetch<IOLPortafolio>("/api/v2/portafolio/argentina"),
     iolFetch<IOLEstadoCuenta>("/api/v2/estadocuenta").catch(() => null),
+    getConversorMEP(),
+    getMEPHoy(),
   ]);
 
-  const calculo = calcularRealizado(ops);
+  const calculo = calcularRealizado(ops, mep);
   const activos = portafolio.activos ?? [];
   const valuacion = activos.reduce((acc, a) => acc + (a.valorizado ?? 0), 0);
   const noRealizada = activos.reduce(
@@ -263,18 +300,32 @@ export async function getGanancias(
         noRealizada,
         costoCartera: valuacion - noRealizada,
         patrimonio: cuenta?.totalEnPesos ?? null,
+        posiciones: activos.map((a) => ({
+          ticker: a.titulo.simbolo,
+          valuacion: a.valorizado ?? 0,
+        })),
+        mepHoy,
       },
-      totalesRealizado(calculo),
+      calculo,
     ),
     periodo: totalesRealizado(calculo, desde, hasta),
     primeraOperacion: calculo.primeraOperacion,
     fechaDesde: desde || null,
     fechaHasta: hasta || null,
+    mepHoy,
   };
 }
 
-export async function getRealizadoAcumulado(): Promise<TotalesRealizado> {
-  return totalesRealizado(calcularRealizado(await getHistorialOperaciones()));
+export async function getHistorialCalculado(): Promise<{
+  calculo: CalculoRealizado;
+  mepHoy: number | null;
+}> {
+  const [ops, mep, mepHoy] = await Promise.all([
+    getHistorialOperaciones(),
+    getConversorMEP(),
+    getMEPHoy(),
+  ]);
+  return { calculo: calcularRealizado(ops, mep), mepHoy };
 }
 
 export async function getPerfil(): Promise<IOLPerfil> {
