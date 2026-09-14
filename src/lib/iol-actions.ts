@@ -15,9 +15,14 @@ import type {
   IOLOperacionDetalle,
   IOLPerfil,
   MarketStripItem,
-  GananciaItem,
-  ResumenGanancias,
 } from "./iol-types";
+import {
+  calcularRealizado,
+  resultadoTotal,
+  totalesRealizado,
+  type ResumenGanancias,
+  type TotalesRealizado,
+} from "./ganancias";
 
 
 const MERCADO_MAP: Record<string, string> = {
@@ -226,106 +231,50 @@ export async function getCotizacionesPortafolio(): Promise<CotizacionItem[]> {
     .sort((a, b) => b.variacionPorcentual - a.variacionPorcentual);
 }
 
-export async function getGananciasRealizadas(
+// El costo de una venta depende de compras que pueden ser de hace años,
+// así que siempre se trae el historial completo y el período se filtra después.
+const HISTORIAL_DESDE = "2000-01-01";
+
+async function getHistorialOperaciones(): Promise<IOLOperacion[]> {
+  return getOperaciones(HISTORIAL_DESDE, new Date().toISOString().split("T")[0]);
+}
+
+export async function getGanancias(
   desde?: string,
   hasta?: string,
 ): Promise<ResumenGanancias> {
-  const hoy = new Date();
-  const unAnioAtras = new Date(hoy);
-  unAnioAtras.setFullYear(unAnioAtras.getFullYear() - 1);
-  const fmt = (d: Date) => d.toISOString().split("T")[0];
-  const fechaDesde = desde || fmt(unAnioAtras);
-  const fechaHasta = hasta || fmt(hoy);
+  const [ops, portafolio, cuenta] = await Promise.all([
+    getHistorialOperaciones(),
+    iolFetch<IOLPortafolio>("/api/v2/portafolio/argentina"),
+    iolFetch<IOLEstadoCuenta>("/api/v2/estadocuenta").catch(() => null),
+  ]);
 
-  const all = await getOperaciones(fechaDesde, fechaHasta);
-
-  const esTerminada = (op: IOLOperacion) => {
-    const est = op.estado?.toLowerCase() ?? "";
-    return est === "terminada" || est === "parcialmente_terminada";
-  };
-
-  const ventas = all.filter(
-    (op) => op.tipo?.toLowerCase() === "venta" && esTerminada(op),
-  );
-  const compras = all.filter(
-    (op) => op.tipo?.toLowerCase() === "compra" && esTerminada(op),
-  );
-
-  // Costo promedio ponderado por ticker desde las compras del período
-  const costMap = new Map<string, number>();
-  const comprasByTicker = new Map<string, IOLOperacion[]>();
-  for (const c of compras) {
-    const t = (c.simbolo ?? "").toUpperCase();
-    if (!comprasByTicker.has(t)) comprasByTicker.set(t, []);
-    comprasByTicker.get(t)!.push(c);
-  }
-  for (const [ticker, ops] of comprasByTicker) {
-    let totalQty = 0;
-    let totalMonto = 0;
-    for (const op of ops) {
-      const qty = op.cantidadOperada ?? op.cantidad ?? 0;
-      const monto = Math.abs(op.montoOperado ?? op.monto ?? 0);
-      if (qty > 0 && monto > 0) {
-        totalQty += qty;
-        totalMonto += monto;
-      }
-    }
-    if (totalQty > 0) costMap.set(ticker, totalMonto / totalQty);
-  }
-
-  const items: GananciaItem[] = ventas
-    .map((op) => {
-      const ticker = (op.simbolo ?? "").toUpperCase();
-      const cantidad = op.cantidadOperada ?? op.cantidad ?? 0;
-      const precio = op.precioOperado ?? op.precio ?? 0;
-      const total = Math.abs(op.montoOperado ?? op.monto ?? cantidad * precio);
-      const moneda = op.moneda ?? "";
-      const enDolares = moneda.toLowerCase().includes("dolar");
-
-      const avgCosto = costMap.get(ticker);
-      const costoEstimado =
-        avgCosto != null && cantidad > 0 && !enDolares
-          ? avgCosto * cantidad
-          : null;
-      const pnlEstimado =
-        costoEstimado != null ? total - costoEstimado : null;
-
-      return {
-        numero: op.numero,
-        fecha: op.fechaOperada ?? op.fechaOrden,
-        ticker,
-        cantidad,
-        precio,
-        total,
-        moneda,
-        costoEstimado,
-        pnlEstimado,
-      };
-    })
-    .sort(
-      (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
-    );
-
-  const totalRecibidoARS = items
-    .filter((i) => !i.moneda.toLowerCase().includes("dolar"))
-    .reduce((acc, i) => acc + i.total, 0);
-
-  const itemsConPnl = items.filter((i) => i.pnlEstimado != null);
-  const pnlEstimado =
-    itemsConPnl.length > 0
-      ? itemsConPnl.reduce((acc, i) => acc + (i.pnlEstimado ?? 0), 0)
-      : null;
-
-  const totalCostoEstimado = itemsConPnl.reduce(
-    (acc, i) => acc + (i.costoEstimado ?? 0),
+  const calculo = calcularRealizado(ops);
+  const activos = portafolio.activos ?? [];
+  const valuacion = activos.reduce((acc, a) => acc + (a.valorizado ?? 0), 0);
+  const noRealizada = activos.reduce(
+    (acc, a) => acc + (Number.isFinite(a.gananciaDinero) ? a.gananciaDinero : 0),
     0,
   );
-  const pnlPct =
-    pnlEstimado != null && totalCostoEstimado > 0
-      ? (pnlEstimado / totalCostoEstimado) * 100
-      : null;
 
-  return { items, totalRecibidoARS, pnlEstimado, pnlPct, fechaDesde, fechaHasta };
+  return {
+    resultado: resultadoTotal(
+      {
+        noRealizada,
+        costoCartera: valuacion - noRealizada,
+        patrimonio: cuenta?.totalEnPesos ?? null,
+      },
+      totalesRealizado(calculo),
+    ),
+    periodo: totalesRealizado(calculo, desde, hasta),
+    primeraOperacion: calculo.primeraOperacion,
+    fechaDesde: desde || null,
+    fechaHasta: hasta || null,
+  };
+}
+
+export async function getRealizadoAcumulado(): Promise<TotalesRealizado> {
+  return totalesRealizado(calcularRealizado(await getHistorialOperaciones()));
 }
 
 export async function getPerfil(): Promise<IOLPerfil> {

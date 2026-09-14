@@ -221,28 +221,6 @@ export interface IOLArancel {
   moneda: string;
 }
 
-// Respuesta de GET /api/v2/operaciones/{numero} — campos distintos al listado
-export interface GananciaItem {
-  numero: number;
-  fecha: string;
-  ticker: string;
-  cantidad: number;
-  precio: number;
-  total: number;
-  moneda: string;
-  costoEstimado: number | null;
-  pnlEstimado: number | null;
-}
-
-export interface ResumenGanancias {
-  items: GananciaItem[];
-  totalRecibidoARS: number;
-  pnlEstimado: number | null;
-  pnlPct: number | null;
-  fechaDesde: string;
-  fechaHasta: string;
-}
-
 export interface MarketStripItem {
   label: string;
   sublabel: string;
@@ -251,6 +229,7 @@ export interface MarketStripItem {
   moneda: "ARS" | "USD";
 }
 
+// Respuesta de GET /api/v2/operaciones/{numero} — campos distintos al listado
 export interface IOLOperacionDetalle {
   numero: number;
   mercado: string;

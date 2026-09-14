@@ -2,6 +2,10 @@ export function fmtMoney(n: number) {
   return "$" + Math.round(n).toLocaleString("es-AR");
 }
 
+export function fmtMoneySigned(n: number) {
+  return (n >= 0 ? "+" : "-") + fmtMoney(Math.abs(n));
+}
+
 export function fmtUSD(n: number) {
   return (
     "US$" +

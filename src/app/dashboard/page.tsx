@@ -1,26 +1,35 @@
 export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
-import { getPortafolio } from "@/lib/iol-actions";
+import Link from "next/link";
+import { getPortafolio, getRealizadoAcumulado } from "@/lib/iol-actions";
+import { resultadoTotal } from "@/lib/ganancias";
 import { HoldingsTable } from "@/components/HoldingsTable";
 import { AllocationChart } from "@/components/AllocationChart";
 import { MarketStrip } from "@/components/MarketStrip";
 import { ValuacionCard } from "@/components/ValuacionCard";
-import { fmtMoney, fmtUSD, fmtPct } from "@/lib/fmt";
+import { fmtMoney, fmtMoneySigned, fmtUSD, fmtPct } from "@/lib/fmt";
 import { MarketStatusBadge } from "@/components/MarketStatusBadge";
 
 export default async function DashboardContent() {
-  const {
-    posiciones,
-    totalValuacion,
-    costoTotal,
-    estadoCuenta,
-    totalPnlPesos,
-    totalPnlPorcentaje,
-    variacionHoy,
-    variacionHoyPesos,
-    cantidadPosiciones,
-  } = await getPortafolio();
+  const [
+    {
+      posiciones,
+      totalValuacion,
+      costoTotal,
+      estadoCuenta,
+      totalPnlPesos,
+      totalPnlPorcentaje,
+      variacionHoy,
+      variacionHoyPesos,
+      cantidadPosiciones,
+    },
+    realizado,
+  ] = await Promise.all([
+    getPortafolio(),
+    // Si falla el historial, la card cae al rendimiento de la cartera actual
+    getRealizadoAcumulado().catch(() => null),
+  ]);
 
   const topGainers = [...posiciones]
     .sort((a, b) => b.variacionDiaria - a.variacionDiaria)
@@ -28,8 +37,17 @@ export default async function DashboardContent() {
   const topLosers = [...posiciones]
     .sort((a, b) => a.variacionDiaria - b.variacionDiaria)
     .slice(0, 3);
-  const pct = estadoCuenta?.gananciaTotalPorcentaje ?? totalPnlPorcentaje;
-  const pesos = estadoCuenta?.gananciaTotalPesos ?? totalPnlPesos;
+  const pct = totalPnlPorcentaje;
+  const resultado = realizado
+    ? resultadoTotal(
+        {
+          noRealizada: totalPnlPesos,
+          costoCartera: costoTotal,
+          patrimonio: estadoCuenta?.totalConEfectivo ?? null,
+        },
+        realizado,
+      )
+    : null;
 
   return (
     <div className="p-4 pb-12 md:p-6  flex flex-col gap-4 md:gap-5">
@@ -76,22 +94,62 @@ export default async function DashboardContent() {
           </div>
         </ValuacionCard>
 
-        {/* Rendimiento */}
-        <div className="bg-card rounded-card shadow-sm p-5">
+        {/* Resultado total */}
+        <div className="bg-card rounded-card shadow-sm p-5 flex flex-col">
           <div className="text-[12px] font-medium text-text3 uppercase tracking-wide">
-            Rendimiento total
+            {resultado ? "Resultado total" : "Rendimiento cartera"}
           </div>
-          <div
-            className={`text-[26px] font-bold mt-1.5 tabular-nums ${pct >= 0 ? "text-profit" : "text-loss"}`}
-          >
-            {fmtPct(pct)}
-          </div>
-          <div
-            className={`text-[12px] mt-0.5 tabular-nums ${pct >= 0 ? "text-profit" : "text-loss"}`}
-          >
-            {pesos >= 0 ? "+" : ""}
-            {fmtMoney(pesos)}
-          </div>
+          {resultado ? (
+            <>
+              <div
+                className={`text-[22px] font-bold mt-1.5 tabular-nums ${resultado.total >= 0 ? "text-profit" : "text-loss"}`}
+              >
+                {fmtMoneySigned(resultado.total)}
+              </div>
+              <div className="text-[12px] mt-0.5 tabular-nums text-text3">
+                {resultado.totalPct != null ? (
+                  <>
+                    <span
+                      className={`font-semibold ${resultado.total >= 0 ? "text-profit" : "text-loss"}`}
+                    >
+                      {fmtPct(resultado.totalPct)}
+                    </span>{" "}
+                    sobre capital propio
+                  </>
+                ) : (
+                  "realizado + no realizado"
+                )}
+              </div>
+              <Link
+                href="/dashboard/ganancias"
+                className="mt-auto pt-2.5 text-[11px] text-text3 hover:text-brand transition-colors"
+              >
+                Cartera actual{" "}
+                <span
+                  className={`font-semibold tabular-nums ${pct >= 0 ? "text-profit" : "text-loss"}`}
+                >
+                  {fmtPct(pct)}
+                </span>{" "}
+                · ver detalle →
+              </Link>
+            </>
+          ) : (
+            <>
+              <div
+                className={`text-[26px] font-bold mt-1.5 tabular-nums ${pct >= 0 ? "text-profit" : "text-loss"}`}
+              >
+                {fmtPct(pct)}
+              </div>
+              <div
+                className={`text-[12px] mt-0.5 tabular-nums ${pct >= 0 ? "text-profit" : "text-loss"}`}
+              >
+                {fmtMoneySigned(totalPnlPesos)}
+              </div>
+              <div className="text-[11px] text-text3 mt-auto pt-2.5">
+                Solo posiciones abiertas
+              </div>
+            </>
+          )}
         </div>
 
         {/* Variación hoy */}
