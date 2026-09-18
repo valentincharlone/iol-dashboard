@@ -7,7 +7,13 @@ import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { REFRESH_INTERVAL_MS, IOL_LOGO_GRADIENT } from "@/lib/config";
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+export function DashboardShell({
+  children,
+  primeraOperacion,
+}: {
+  children: React.ReactNode;
+  primeraOperacion?: string | null;
+}) {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -60,6 +66,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               : () => setCollapsed((c) => !c)
           }
           isMobile={isMobile}
+          primeraOperacion={primeraOperacion}
         />
       </div>
 

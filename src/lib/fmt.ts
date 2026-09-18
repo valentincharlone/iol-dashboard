@@ -75,3 +75,56 @@ export function fmtDateStr(s: string): string {
   const [y, m, d] = s.split("-");
   return `${d}/${m}/${y}`;
 }
+
+/** Años, meses y días completos transcurridos desde una fecha. */
+function antiguedadDe(iso: string, hasta: Date) {
+  const desde = new Date(iso);
+  if (Number.isNaN(desde.getTime())) return null;
+  if (desde >= hasta) return { anios: 0, meses: 0, dias: 0 };
+
+  let anios = hasta.getFullYear() - desde.getFullYear();
+  let meses = hasta.getMonth() - desde.getMonth();
+  if (hasta.getDate() < desde.getDate()) meses--;
+  if (meses < 0) {
+    anios--;
+    meses += 12;
+  }
+  const dias = Math.floor((hasta.getTime() - desde.getTime()) / 86_400_000);
+  return { anios, meses, dias };
+}
+
+/**
+ * Tiempo transcurrido desde una fecha, en formato compacto: "2a 8m", "5m", "12d".
+ * Devuelve null si la fecha no es parseable.
+ */
+export function fmtAntiguedad(
+  iso: string,
+  hasta: Date = new Date(),
+): string | null {
+  const a = antiguedadDe(iso, hasta);
+  if (!a) return null;
+  if (a.anios > 0) return a.meses > 0 ? `${a.anios}a ${a.meses}m` : `${a.anios}a`;
+  if (a.meses > 0) return `${a.meses}m`;
+  return `${a.dias}d`;
+}
+
+/**
+ * Igual que fmtAntiguedad pero en palabras: "2 años y 8 meses", "1 mes", "12 días".
+ * Devuelve null si la fecha no es parseable.
+ */
+export function fmtAntiguedadLarga(
+  iso: string,
+  hasta: Date = new Date(),
+): string | null {
+  const a = antiguedadDe(iso, hasta);
+  if (!a) return null;
+  const unidad = (n: number, singular: string, plural: string) =>
+    `${n} ${n === 1 ? singular : plural}`;
+
+  if (a.anios > 0) {
+    const años = unidad(a.anios, "año", "años");
+    return a.meses > 0 ? `${años} y ${unidad(a.meses, "mes", "meses")}` : años;
+  }
+  if (a.meses > 0) return unidad(a.meses, "mes", "meses");
+  return unidad(a.dias, "día", "días");
+}

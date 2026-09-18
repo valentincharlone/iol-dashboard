@@ -19,6 +19,7 @@ import type {
 import {
   calcularRealizado,
   crearConversorMEP,
+  primeraOperacionDe,
   resultadoTotal,
   totalesRealizado,
   type CalculoRealizado,
@@ -326,6 +327,20 @@ export async function getHistorialCalculado(): Promise<{
     getMEPHoy(),
   ]);
   return { calculo: calcularRealizado(ops, mep), mepHoy };
+}
+
+// La fecha de la primera operación nunca cambia: se cachea en memoria del proceso.
+let primeraOperacionCache: string | null | undefined;
+
+/** Fecha ISO de la primera operación terminada, o null si no hay historial. */
+export async function getPrimeraOperacion(): Promise<string | null> {
+  if (primeraOperacionCache !== undefined) return primeraOperacionCache;
+  try {
+    primeraOperacionCache = primeraOperacionDe(await getHistorialOperaciones());
+  } catch {
+    return null; // sin cachear: se reintenta en el próximo render
+  }
+  return primeraOperacionCache;
 }
 
 export async function getPerfil(): Promise<IOLPerfil> {

@@ -14,9 +14,11 @@ import {
   X,
   LogOut,
   PanelLeft,
+  CalendarClock,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { IOL_LOGO_GRADIENT } from "@/lib/config";
+import { fmtAntiguedad, fmtAntiguedadLarga, fmtFecha } from "@/lib/fmt";
 
 const NAV_MAIN = [
   { href: "/dashboard", label: "Portafolio", icon: <PieChart size={18} /> },
@@ -49,10 +51,21 @@ interface Props {
   collapsed: boolean;
   onToggle: () => void;
   isMobile?: boolean;
+  /** Fecha ISO de la primera operación; alimenta el bloque "Invirtiendo hace". */
+  primeraOperacion?: string | null;
 }
 
-export function Sidebar({ collapsed, onToggle, isMobile }: Props) {
+export function Sidebar({
+  collapsed,
+  onToggle,
+  isMobile,
+  primeraOperacion,
+}: Props) {
   const pathname = usePathname();
+  const antiguedad = primeraOperacion ? fmtAntiguedad(primeraOperacion) : null;
+  const antiguedadLarga = primeraOperacion
+    ? fmtAntiguedadLarga(primeraOperacion)
+    : null;
   const w = collapsed ? "w-16 min-w-16" : "w-[220px] min-w-[220px]";
 
   function isActive(href: string) {
@@ -118,6 +131,45 @@ export function Sidebar({ collapsed, onToggle, isMobile }: Props) {
             {isMobile ? <X size={18} /> : <PanelLeft size={18} />}
           </button>
         </div>
+      )}
+
+      {/* Antigüedad invirtiendo → historial completo */}
+      {antiguedad && antiguedadLarga && primeraOperacion && (
+        <Link
+          href="/dashboard/movimientos"
+          title={`Invirtiendo hace ${antiguedadLarga} · desde ${fmtFecha(primeraOperacion)} · ver movimientos`}
+          className={[
+            "border-b border-border no-underline transition-colors hover:bg-surface2 group",
+            collapsed
+              ? "flex flex-col items-center gap-0.5 px-0 py-3"
+              : "block px-4 py-3",
+          ].join(" ")}
+        >
+          {collapsed ? (
+            <>
+              <CalendarClock
+                size={16}
+                className="text-text3 group-hover:text-brand transition-colors"
+              />
+              <span className="text-[10px] font-semibold tabular-nums text-text2">
+                {antiguedad}
+              </span>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-text3 group-hover:text-brand transition-colors">
+                <CalendarClock size={12} className="shrink-0" />
+                <span className="whitespace-nowrap">Invirtiendo hace</span>
+              </div>
+              <div className="mt-0.5 text-[14px] font-bold text-text1 whitespace-nowrap">
+                {antiguedadLarga}
+              </div>
+              <div className="text-[11px] tabular-nums text-text3 whitespace-nowrap">
+                desde {fmtFecha(primeraOperacion)}
+              </div>
+            </>
+          )}
+        </Link>
       )}
 
       {/* Nav principal */}

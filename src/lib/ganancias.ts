@@ -138,6 +138,17 @@ const esTerminada = (op: IOLOperacion) => {
 const pct = (ganancia: number | null, costo: number | null) =>
   ganancia != null && costo ? (ganancia / costo) * 100 : null;
 
+/** Fecha de la operación terminada más antigua del historial. */
+export function primeraOperacionDe(ops: IOLOperacion[]): string | null {
+  let primera: string | null = null;
+  for (const op of ops) {
+    const f = fechaDe(op);
+    if (!esTerminada(op) || !f) continue;
+    if (primera == null || f.localeCompare(primera) < 0) primera = f;
+  }
+  return primera;
+}
+
 interface Tenencia {
   cantidad: number;
   costo: number;
