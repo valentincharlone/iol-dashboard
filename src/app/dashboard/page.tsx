@@ -1,12 +1,10 @@
 export const dynamic = "force-dynamic";
 
-import { Suspense } from "react";
 import Link from "next/link";
 import { getPortafolio, getHistorialCalculado } from "@/lib/iol-actions";
 import { resultadoTotal } from "@/lib/ganancias";
 import { HoldingsTable } from "@/components/HoldingsTable";
 import { AllocationChart } from "@/components/AllocationChart";
-import { MarketStrip } from "@/components/MarketStrip";
 import { ValuacionCard } from "@/components/ValuacionCard";
 import {
   fmtMoney,
@@ -66,17 +64,6 @@ export default async function DashboardContent() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-[22px] font-bold text-text1 m-0">Portafolio</h1>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-[12px] text-text3">Argentina · BCBA</span>
-            <span className="text-text3/40 text-[12px] select-none">·</span>
-            <Suspense
-              fallback={
-                <span className="text-[12px] text-text3/40">cargando…</span>
-              }
-            >
-              <MarketStrip />
-            </Suspense>
-          </div>
         </div>
         <MarketStatusBadge />
       </div>
