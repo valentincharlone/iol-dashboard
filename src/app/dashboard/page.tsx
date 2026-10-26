@@ -59,15 +59,7 @@ export default async function DashboardContent() {
     : null;
 
   return (
-    <div className="p-4 pb-12 md:p-6  flex flex-col gap-4 md:gap-5">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-[22px] font-bold text-text1 m-0">Portafolio</h1>
-        </div>
-        <MarketStatusBadge />
-      </div>
-
+    <div className="p-4 pb-12 md:p-6 md:h-dvh flex flex-col gap-4 md:gap-5">
       {/* KPI row */}
       <div className="grid grid-cols-2 md:grid-cols-kpi gap-3 md:gap-3.5">
         {/* Hero */}
@@ -100,7 +92,7 @@ export default async function DashboardContent() {
           {resultado ? (
             <>
               <div
-                className={`text-[22px] font-bold mt-1.5 tabular-nums ${resultado.total >= 0 ? "text-profit" : "text-loss"}`}
+                className={`text-[28px] font-bold mt-1.5 tabular-nums ${resultado.total >= 0 ? "text-profit" : "text-loss"}`}
               >
                 {fmtMoneySigned(resultado.total)}
               </div>
@@ -146,7 +138,7 @@ export default async function DashboardContent() {
           ) : (
             <>
               <div
-                className={`text-[26px] font-bold mt-1.5 tabular-nums ${pct >= 0 ? "text-profit" : "text-loss"}`}
+                className={`text-[28px] font-bold mt-1.5 tabular-nums ${pct >= 0 ? "text-profit" : "text-loss"}`}
               >
                 {fmtPct(pct)}
               </div>
@@ -164,11 +156,14 @@ export default async function DashboardContent() {
 
         {/* Variación hoy */}
         <div className="bg-card rounded-card shadow-sm p-5">
-          <div className="text-[12px] font-medium text-text3 uppercase tracking-wide">
-            Variación hoy
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-[12px] font-medium text-text3 uppercase tracking-wide">
+              Variación hoy
+            </div>
+            <MarketStatusBadge />
           </div>
           <div
-            className={`text-[26px] font-bold mt-1.5 tabular-nums ${variacionHoy >= 0 ? "text-profit" : "text-loss"}`}
+            className={`text-[28px] font-bold mt-1.5 tabular-nums ${variacionHoy >= 0 ? "text-profit" : "text-loss"}`}
           >
             {fmtPct(variacionHoy)}
           </div>
@@ -195,7 +190,7 @@ export default async function DashboardContent() {
                   <span className="text-[10px] text-text3 font-semibold min-w-[24px]">
                     {r.label}
                   </span>
-                  <span className="text-[18px] font-bold tabular-nums text-text1">
+                  <span className="text-[22px] font-bold tabular-nums text-text1">
                     {r.value}
                   </span>
                 </div>
@@ -227,7 +222,7 @@ export default async function DashboardContent() {
                   className="flex items-center justify-between"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-bold text-[13px] text-text1 shrink-0">
+                    <span className="font-bold text-[15px] text-text1 shrink-0">
                       {p.ticker}
                     </span>
                     <span className="text-[11px] text-text3 truncate">
@@ -236,7 +231,7 @@ export default async function DashboardContent() {
                   </div>
                   <div className="text-right">
                     <span
-                      className={`text-[13px] font-bold tabular-nums ${positive ? "text-profit" : "text-loss"}`}
+                      className={`text-[15px] font-bold tabular-nums ${positive ? "text-profit" : "text-loss"}`}
                     >
                       {fmtPct(p.variacionDiaria)}
                     </span>
@@ -253,9 +248,10 @@ export default async function DashboardContent() {
       </div>
 
       {/* Distribución + Holdings */}
-      <div className="grid grid-cols-1 md:grid-cols-bottom gap-4 md:gap-5 items-stretch">
-        <div className="bg-card rounded-card shadow-sm p-5 md:p-6">
-          <p className="text-[13px] font-semibold text-text2 mb-1">
+      {/* En desktop ocupa el alto que queda del viewport: nada de scroll */}
+      <div className="grid grid-cols-1 md:grid-cols-bottom md:grid-rows-[minmax(0,1fr)] md:flex-1 md:min-h-0 gap-4 md:gap-5 items-stretch">
+        <div className="bg-card rounded-card shadow-sm p-5 md:p-6 flex flex-col min-h-0">
+          <p className="text-[13px] font-semibold text-text2 mb-3">
             Distribución
           </p>
           <AllocationChart posiciones={posiciones} />
@@ -263,7 +259,7 @@ export default async function DashboardContent() {
         <HoldingsTable
           posiciones={posiciones}
           totalValuacion={totalValuacion}
-          limit={5}
+          fit
         />
       </div>
     </div>

@@ -66,8 +66,10 @@ function DonutChart({
   let cumulative = 0;
 
   return (
-    <div className="flex flex-col items-center gap-5">
-      <div className="relative w-full aspect-square max-w-[190px]">
+    // En desktop el donut toma el alto libre de la card (la leyenda tiene prioridad)
+    <div className="flex flex-col items-center gap-5 md:flex-1 md:min-h-0">
+      <div className="w-full flex justify-center md:flex-1 md:min-h-[140px]">
+        <div className="relative aspect-square w-full max-w-[190px] md:w-auto md:h-full md:max-w-none md:max-h-[230px]">
         <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`}>
           <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
             {segments.map((seg, i) => {
@@ -102,6 +104,7 @@ function DonutChart({
             Títulos
           </div>
         </div>
+        </div>
       </div>
       <Legend segments={segments} />
     </div>
@@ -118,10 +121,10 @@ function Legend({ segments }: { segments: Segment[] }) {
               className="w-2.5 h-2.5 rounded-[3px] shrink-0"
               style={{ background: seg.color }}
             />
-            <span className="text-[13px] text-text2">{seg.label}</span>
+            <span className="text-[14px] text-text2">{seg.label}</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-[13px] font-semibold tabular-nums">
+            <span className="text-[14px] font-semibold tabular-nums">
               {fmtMoney(seg.value)}
             </span>
             <span className="text-[12px] text-text3 tabular-nums min-w-[40px] text-right">

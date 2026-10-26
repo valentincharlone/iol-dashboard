@@ -16,16 +16,7 @@ const card = "bg-card rounded-card shadow-card";
 
 export default function DashboardLoading() {
   return (
-    <div className="p-4 pb-12 md:p-6 md:pb-16 flex flex-col gap-4 md:gap-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-1.5">
-          <Sk w={120} h={22} />
-          <Sk w={160} />
-        </div>
-        <Sk w={70} h={14} />
-      </div>
-
+    <div className="p-4 pb-12 md:p-6 md:h-dvh flex flex-col gap-4 md:gap-5">
       {/* KPI */}
       <div className="grid grid-cols-2 md:grid-cols-kpi gap-3 md:gap-3.5">
         <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-[#4338CA] to-[#818CF8] rounded-card p-6 md:p-7">
@@ -37,15 +28,18 @@ export default function DashboardLoading() {
           </div>
         </div>
         {[
-          [100, 28, 80],
-          [90, 28, 70],
+          [100, 32, 80],
+          [90, 32, 70],
           [70, 28, 50],
         ].map(([lw, vh, vw], i) => (
           <div
             key={i}
             className={`${card} p-5 flex flex-col gap-2 ${i === 2 ? "col-span-2 md:col-span-1" : ""}`}
           >
-            <Sk w={lw} h={10} />
+            <div className="flex justify-between items-center">
+              <Sk w={lw} h={10} />
+              {i === 1 && <Sk w={55} h={12} />}
+            </div>
             <Sk w={vw} h={vh} />
             <Sk w={80} h={12} />
           </div>
@@ -76,24 +70,25 @@ export default function DashboardLoading() {
       </div>
 
       {/* Distribución + Holdings */}
-      <div className="grid grid-cols-1 md:grid-cols-bottom gap-4 md:gap-5 items-start">
-        <div className={`${card} p-5 md:p-6`}>
+      <div className="grid grid-cols-1 md:grid-cols-bottom md:grid-rows-[minmax(0,1fr)] md:flex-1 md:min-h-0 gap-4 md:gap-5 items-stretch">
+        <div className={`${card} p-5 md:p-6 flex flex-col min-h-0`}>
           <Sk w={90} h={14} />
-          <div className="flex justify-center mt-6">
-            <div className="shimmer w-[180px] h-[180px] rounded-full" />
+          <div className="flex justify-center mt-4 md:flex-1 md:min-h-[140px]">
+            <div className="shimmer aspect-square rounded-full w-full max-w-[190px] md:w-auto md:h-full md:max-w-none md:max-h-[230px]" />
           </div>
           <div className="flex flex-col gap-2.5 mt-5">
-            {[100, 80, 110, 70].map((w, i) => (
-              <div key={i} className="flex items-center gap-2.5">
-                <div className="shimmer w-2.5 h-2.5 rounded-full shrink-0" />
-                <Sk w={w} h={12} />
-                <Sk w={50} h={12} className="ml-auto" />
+            {[110, 120, 95, 60, 50, 80].map((w, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="shimmer w-2.5 h-2.5 rounded-[3px] shrink-0" />
+                <Sk w={w} h={13} />
+                <Sk w={75} h={13} className="ml-auto" />
+                <Sk w={36} h={12} className="ml-1" />
               </div>
             ))}
           </div>
         </div>
 
-        <div className={`${card} overflow-clip`}>
+        <div className={`${card} h-full overflow-clip`}>
           <div className="px-5 py-4 border-b border-border-light flex justify-between items-center">
             <div className="flex gap-2 items-center">
               <Sk w={100} h={16} />
@@ -122,7 +117,7 @@ export default function DashboardLoading() {
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 5 }).map((_, i) => (
+              {Array.from({ length: 10 }).map((_, i) => (
                 <tr key={i}>
                   <td className="pl-5 pr-3 py-3 border-b border-border-light">
                     <Sk w={50} h={14} className="mb-1" />

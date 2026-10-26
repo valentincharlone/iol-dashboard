@@ -11,6 +11,8 @@ interface Props {
   posiciones: DashboardPosicion[];
   totalValuacion: number;
   limit?: number;
+  /** Muestra solo las filas que entran en la altura del contenedor (sin scroll). */
+  fit?: boolean;
 }
 
 type Density = "compact" | "normal" | "spacious";
@@ -49,8 +51,16 @@ const DENSITY_PY: Record<Density, string> = {
   spacious: "py-[18px]",
 };
 
-export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
+export function HoldingsTable({
+  posiciones,
+  totalValuacion,
+  limit,
+  fit,
+}: Props) {
+  const resumida = limit != null || fit === true;
   const router = useRouter();
+  const tableWrapRef = useRef<HTMLDivElement>(null);
+  const [filasQueEntran, setFilasQueEntran] = useState<number | null>(null);
   const [density, setDensity] = useState<Density>("normal");
   const [sortBy, setSortBy] = useState<SortBy>("valuacion");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -144,6 +154,23 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
 
   const displayed = limit ? filtered.slice(0, limit) : filtered;
 
+  // Con `fit`, el alto lo fija el layout: se cuentan las filas que entran y el resto se oculta.
+  useEffect(() => {
+    const wrap = tableWrapRef.current;
+    if (!fit || !wrap) return;
+    const medir = () => {
+      const thead = wrap.querySelector("thead");
+      const fila = wrap.querySelector<HTMLElement>("tbody tr");
+      if (!thead || !fila) return;
+      const disponible = wrap.clientHeight - thead.offsetHeight;
+      setFilasQueEntran(Math.max(1, Math.floor(disponible / fila.offsetHeight)));
+    };
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(wrap);
+    return () => ro.disconnect();
+  }, [fit, density]);
+
   const maxWeight =
     posiciones.length > 0
       ? Math.max(
@@ -153,8 +180,8 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
         )
       : 0;
 
-  const tdCls = `${DENSITY_PY[density]} px-2.5 border-b border-border-light text-[13px] tabular-nums text-right whitespace-nowrap transition-[padding] duration-200`;
-  const tdClsLeft = `${DENSITY_PY[density]} px-2.5 border-b border-border-light text-[13px] tabular-nums text-left  whitespace-nowrap transition-[padding] duration-200`;
+  const tdCls = `${DENSITY_PY[density]} px-2.5 border-b border-border-light text-[14px] tabular-nums text-right whitespace-nowrap transition-[padding] duration-200`;
+  const tdClsLeft = `${DENSITY_PY[density]} px-2.5 border-b border-border-light text-[14px] tabular-nums text-left  whitespace-nowrap transition-[padding] duration-200`;
 
   const densityBtn = (d: Density, label: string) => (
     <button
@@ -191,7 +218,7 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
 
   return (
     <>
-      <div className="h-full bg-card rounded-card shadow-sm overflow-clip">
+      <div className="h-full flex flex-col bg-card rounded-card shadow-sm overflow-clip">
         {/* Toolbar */}
         <div className="border-b border-border-light">
           <div className="flex items-center justify-between px-5 py-4 flex-wrap gap-3">
@@ -206,7 +233,7 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
               </span>
             </div>
 
-            {limit ? (
+            {resumida ? (
               <Link
                 href="/dashboard/holdings"
                 className="text-[13px] font-medium text-brand hover:underline"
@@ -257,7 +284,7 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
           </div>
 
           {/* Filter pills */}
-          {!limit && availableTipos.length > 1 && (
+          {!resumida && availableTipos.length > 1 && (
             <div className="flex items-center gap-1.5 px-5 pt-1 pb-3 flex-wrap">
               <button
                 onClick={() => setFilterTipo("all")}
@@ -287,7 +314,10 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
+        <div
+          ref={tableWrapRef}
+          className={`overflow-x-auto ${fit ? "flex-1 min-h-0 overflow-y-hidden" : ""}`}
+        >
           <table className="w-full border-collapse" style={{ minWidth: 760 }}>
             <thead className="sticky top-0 z-10 bg-card">
               <tr>
@@ -318,13 +348,14 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
                         `/dashboard/holdings/${encodeURIComponent(p.ticker)}`,
                       )
                     }
+                    hidden={filasQueEntran != null && i >= filasQueEntran}
                     className={`cursor-pointer ${hovRow === i ? "bg-rowHover" : "bg-transparent"}`}
                   >
                     <td className={`${tdClsLeft} pl-5`}>
                       <div className="flex items-center gap-2">
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-[13px] text-text1">
+                            <span className="font-bold text-[14px] text-text1">
                               {p.ticker}
                             </span>
                             <span
