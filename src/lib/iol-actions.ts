@@ -287,8 +287,12 @@ export async function getGanancias(
     getMEPHoy(),
   ]);
 
-  const calculo = calcularRealizado(ops, mep);
   const activos = portafolio.activos ?? [];
+  const calculo = calcularRealizado(
+    ops,
+    mep,
+    new Set(activos.map((a) => a.titulo.simbolo)),
+  );
   const valuacion = activos.reduce((acc, a) => acc + (a.valorizado ?? 0), 0);
   const noRealizada = activos.reduce(
     (acc, a) => acc + (Number.isFinite(a.gananciaDinero) ? a.gananciaDinero : 0),
@@ -321,12 +325,16 @@ export async function getHistorialCalculado(): Promise<{
   calculo: CalculoRealizado;
   mepHoy: number | null;
 }> {
-  const [ops, mep, mepHoy] = await Promise.all([
+  const [ops, portafolio, mep, mepHoy] = await Promise.all([
     getHistorialOperaciones(),
+    iolFetch<IOLPortafolio>("/api/v2/portafolio/argentina").catch(() => null),
     getConversorMEP(),
     getMEPHoy(),
   ]);
-  return { calculo: calcularRealizado(ops, mep), mepHoy };
+  const enCartera = new Set(
+    (portafolio?.activos ?? []).map((a) => a.titulo.simbolo),
+  );
+  return { calculo: calcularRealizado(ops, mep, enCartera), mepHoy };
 }
 
 // La fecha de la primera operación nunca cambia: se cachea en memoria del proceso.

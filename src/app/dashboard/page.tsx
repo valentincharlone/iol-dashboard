@@ -253,8 +253,8 @@ export default async function DashboardContent() {
       </div>
 
       {/* Distribución + Holdings */}
-      <div className=" grid grid-cols-1 md:grid-cols-bottom gap-4 md:gap-5 items-start">
-        <div className="h-[100%] bg-card rounded-card shadow-sm p-5 md:p-6">
+      <div className="grid grid-cols-1 md:grid-cols-bottom gap-4 md:gap-5 items-stretch">
+        <div className="bg-card rounded-card shadow-sm p-5 md:p-6">
           <p className="text-[13px] font-semibold text-text2 mb-1">
             Distribución
           </p>

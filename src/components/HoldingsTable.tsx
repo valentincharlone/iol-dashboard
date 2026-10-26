@@ -191,7 +191,7 @@ export function HoldingsTable({ posiciones, totalValuacion, limit }: Props) {
 
   return (
     <>
-      <div className="bg-card rounded-card shadow-sm overflow-clip">
+      <div className="h-full bg-card rounded-card shadow-sm overflow-clip">
         {/* Toolbar */}
         <div className="border-b border-border-light">
           <div className="flex items-center justify-between px-5 py-4 flex-wrap gap-3">

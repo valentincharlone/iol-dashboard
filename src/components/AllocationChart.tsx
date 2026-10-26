@@ -1,65 +1,51 @@
 "use client";
 
-import { useState } from "react";
 import type { DashboardPosicion } from "@/lib/iol-types";
 import { fmtMoney } from "@/lib/fmt";
-import { getTipoColor, getTipoLegendLabel } from "@/lib/instrument";
+import { SECTORES, getSector, type Sector } from "@/lib/sectores";
 
 interface Segment {
-  tipo: string;
+  sector: Sector;
   label: string;
   value: number;
   color: string;
   pct: number;
 }
 
-type ChartType = "donut" | "bar";
-
 export function AllocationChart({
   posiciones,
 }: {
   posiciones: DashboardPosicion[];
 }) {
-  const [chartType, setChartType] = useState<ChartType>("donut");
-
-  const byTipo = posiciones.reduce<Record<string, number>>((acc, p) => {
-    acc[p.tipo] = (acc[p.tipo] ?? 0) + p.valuacion;
+  const bySector = posiciones.reduce<Partial<Record<Sector, number>>>((acc, p) => {
+    const s = getSector(p.ticker, p.tipo);
+    acc[s] = (acc[s] ?? 0) + p.valuacion;
     return acc;
   }, {});
 
-  const total = Object.values(byTipo).reduce((a, b) => a + b, 0);
-  const segments: Segment[] = Object.entries(byTipo)
-    .map(([tipo, value]) => ({
-      tipo,
-      label: getTipoLegendLabel(tipo),
+  const sinClasificar = posiciones
+    .filter((p) => getSector(p.ticker, p.tipo) === "otro")
+    .map((p) => p.ticker);
+
+  const total = Object.values(bySector).reduce((a, b) => a + b, 0);
+  const segments: Segment[] = (Object.entries(bySector) as [Sector, number][])
+    .map(([sector, value]) => ({
+      sector,
+      label: SECTORES[sector].label,
       value,
-      color: getTipoColor(tipo),
+      color: SECTORES[sector].color,
       pct: total > 0 ? (value / total) * 100 : 0,
     }))
     .sort((a, b) => b.value - a.value);
 
   return (
     <>
-      <div className="flex gap-1 mb-4">
-        {(["donut", "bar"] as ChartType[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setChartType(t)}
-            className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-md border-none cursor-pointer transition-all font-[inherit] ${
-              chartType === t
-                ? "bg-brand-muted text-brand"
-                : "bg-transparent text-text3 hover:text-text2"
-            }`}
-          >
-            {t === "donut" ? "Donut" : "Barras"}
-          </button>
-        ))}
-      </div>
+      <DonutChart segments={segments} total={total} />
 
-      {chartType === "donut" ? (
-        <DonutChart segments={segments} total={total} />
-      ) : (
-        <BarDistribution segments={segments} />
+      {sinClasificar.length > 0 && (
+        <p className="text-[11px] text-text3 mt-3 leading-snug">
+          Sin clasificar: {sinClasificar.join(", ")}
+        </p>
       )}
     </>
   );
@@ -122,47 +108,11 @@ function DonutChart({
   );
 }
 
-function BarDistribution({ segments }: { segments: Segment[] }) {
-  const maxPct = Math.max(...segments.map((s) => s.pct));
-  const BAR_HEIGHT = 140;
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-end gap-2" style={{ height: BAR_HEIGHT + 32 }}>
-        {segments.map((seg) => {
-          const barH = maxPct > 0 ? (seg.pct / maxPct) * BAR_HEIGHT : 0;
-          return (
-            <div
-              key={seg.tipo}
-              className="flex-1 flex flex-col items-center gap-1.5 justify-end h-full"
-            >
-              <span
-                className="text-[10px] font-bold tabular-nums"
-                style={{ color: seg.color }}
-              >
-                {seg.pct.toFixed(1)}%
-              </span>
-              <div
-                className="w-full rounded-t-[5px] opacity-90 transition-[height] duration-500"
-                style={{ height: barH, background: seg.color }}
-              />
-              <span className="text-[10px] text-text3 font-medium text-center leading-tight w-full truncate">
-                {seg.label}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-      <Legend segments={segments} />
-    </div>
-  );
-}
-
 function Legend({ segments }: { segments: Segment[] }) {
   return (
     <div className="flex flex-col gap-2.5 w-full">
       {segments.map((seg) => (
-        <div key={seg.tipo} className="flex items-center justify-between gap-3">
+        <div key={seg.sector} className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span
               className="w-2.5 h-2.5 rounded-[3px] shrink-0"

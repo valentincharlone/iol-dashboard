@@ -160,6 +160,8 @@ interface Tenencia {
 export function calcularRealizado(
   ops: IOLOperacion[],
   mep?: ConversorMEP | null,
+  /** Tickers que figuran hoy en el portafolio, para reconocer compras en US$ de posiciones nuevas. */
+  enCartera?: ReadonlySet<string>,
 ): CalculoRealizado {
   const aUSD = (monto: number, fecha: string) => (mep ? monto / mep(fecha) : null);
 
@@ -193,11 +195,14 @@ export function calcularRealizado(
     const tipo = op.tipo ?? "";
 
     // Compra/venta liquidada en dólares (ej. AL30D): mueve la tenencia del ticker en pesos.
+    // Se reconoce porque ya se tenía el ticker base, o porque el base es el que figura hoy
+    // en la cartera (primera compra hecha directo en US$, ej. SKHYD → SKHY).
     const base = ticker.endsWith("D") ? ticker.slice(0, -1) : null;
     const liquidaEnDolares =
       (tipo === "Compra" || tipo === "Venta") &&
       base != null &&
-      (tenencias.get(base)?.cantidad ?? 0) > EPS;
+      ((tenencias.get(base)?.cantidad ?? 0) > EPS ||
+        (enCartera != null && enCartera.has(base) && !enCartera.has(ticker)));
     const tickerTenencia = liquidaEnDolares ? base! : ticker;
 
     if (tipo === "Compra") {
