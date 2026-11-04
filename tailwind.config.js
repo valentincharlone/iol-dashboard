@@ -32,7 +32,7 @@ module.exports = {
       },
       borderRadius: { card: "14px" },
       gridTemplateColumns: {
-        kpi:    "2fr 1fr 1fr 1fr",
+        kpi:    "1.4fr 1fr 1fr 1fr",
         bottom: "360px 1fr",
       },
     },

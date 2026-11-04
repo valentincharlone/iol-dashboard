@@ -16,10 +16,10 @@ const card = "bg-card rounded-card shadow-card";
 
 export default function DashboardLoading() {
   return (
-    <div className="p-4 pb-12 md:p-6 md:h-dvh flex flex-col gap-4 md:gap-5">
+    <div className="p-4 pb-12 md:p-6 xl:h-dvh flex flex-col gap-4 md:gap-5">
       {/* KPI */}
-      <div className="grid grid-cols-2 md:grid-cols-kpi gap-3 md:gap-3.5">
-        <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-[#4338CA] to-[#818CF8] rounded-card p-6 md:p-7">
+      <div className="grid grid-cols-2 xl:grid-cols-kpi gap-3 md:gap-3.5">
+        <div className="col-span-2 xl:col-span-1 bg-gradient-to-br from-[#4338CA] to-[#818CF8] rounded-card p-6 md:p-7">
           <div className="shimmer h-3 w-36 mb-2.5 opacity-40" />
           <div className="shimmer h-8 w-48 mb-3 opacity-40" />
           <div className="flex gap-4">
@@ -34,7 +34,7 @@ export default function DashboardLoading() {
         ].map(([lw, vh, vw], i) => (
           <div
             key={i}
-            className={`${card} p-5 flex flex-col gap-2 ${i === 2 ? "col-span-2 md:col-span-1" : ""}`}
+            className={`${card} p-5 flex flex-col gap-2 ${i === 0 ? "col-span-2 sm:col-span-1" : i === 2 ? "sm:col-span-2 xl:col-span-1" : ""}`}
           >
             <div className="flex justify-between items-center">
               <Sk w={lw} h={10} />
@@ -70,11 +70,11 @@ export default function DashboardLoading() {
       </div>
 
       {/* Distribución + Holdings */}
-      <div className="grid grid-cols-1 md:grid-cols-bottom md:grid-rows-[minmax(0,1fr)] md:flex-1 md:min-h-0 gap-4 md:gap-5 items-stretch">
+      <div className="grid grid-cols-1 xl:grid-cols-bottom xl:grid-rows-[minmax(0,1fr)] xl:flex-1 xl:min-h-0 gap-4 md:gap-5 items-stretch">
         <div className={`${card} p-5 md:p-6 flex flex-col min-h-0`}>
           <Sk w={90} h={14} />
-          <div className="flex justify-center mt-4 md:flex-1 md:min-h-[140px]">
-            <div className="shimmer aspect-square rounded-full w-full max-w-[190px] md:w-auto md:h-full md:max-w-none md:max-h-[230px]" />
+          <div className="flex justify-center mt-4 xl:flex-1 xl:min-h-[140px]">
+            <div className="shimmer aspect-square rounded-full w-full max-w-[190px] xl:w-auto xl:h-full xl:max-w-none xl:max-h-[230px]" />
           </div>
           <div className="flex flex-col gap-2.5 mt-5">
             {[110, 120, 95, 60, 50, 80].map((w, i) => (

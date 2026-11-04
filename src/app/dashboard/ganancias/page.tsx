@@ -167,6 +167,37 @@ function EventoRow({ e }: { e: EventoRealizado }) {
   );
 }
 
+function EventoItem({ e }: { e: EventoRealizado }) {
+  const enUSD = e.estado === "enDolares";
+  return (
+    <li className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border-light last:border-0">
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="font-bold text-[14px] text-text1">{e.ticker}</span>
+          <span className="text-[10px] font-semibold text-text3 bg-surface2 px-1.5 py-0.5 rounded">
+            {e.tipo === "venta" ? "Venta" : "Amortización"}
+          </span>
+        </div>
+        <div className="text-[11px] text-text3 mt-px tabular-nums">
+          {fmtFecha(e.fecha)} · recibido{" "}
+          {enUSD ? fmtUSD(e.recibido) : fmtMoney(e.recibido)}
+        </div>
+      </div>
+      <div className="text-right shrink-0">
+        {e.ganancia != null ? (
+          <GananciaCelda ganancia={e.ganancia} pct={e.gananciaPct} />
+        ) : e.gananciaUSD != null ? (
+          <GananciaCelda ganancia={e.gananciaUSD} pct={e.gananciaUSDPct} usd />
+        ) : (
+          <span className="text-[11px] text-text3">
+            {enUSD ? "Cobrado en US$" : "Sin costo de compra"}
+          </span>
+        )}
+      </div>
+    </li>
+  );
+}
+
 export default async function GananciasPage({
   searchParams,
 }: {
@@ -410,7 +441,13 @@ export default async function GananciasPage({
             No hay ventas ni vencimientos en el período.
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <ul className="md:hidden">
+            {p.eventos.map((e) => (
+              <EventoItem key={e.numero} e={e} />
+            ))}
+          </ul>
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full border-collapse" style={{ minWidth: 920 }}>
               <thead>
                 <tr className="border-b border-border">
@@ -432,6 +469,7 @@ export default async function GananciasPage({
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         <p className="px-5 py-3 text-[11px] text-text3 border-t border-border leading-relaxed">

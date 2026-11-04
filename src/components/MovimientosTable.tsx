@@ -30,7 +30,19 @@ function isDividendo(tipo: string) {
   return tipo.toLowerCase().includes("dividendo");
 }
 
-type SortCol = "fecha" | "activo" | "total";
+function fmtTotal(op: IOLOperacion) {
+  const monto = op.montoOperado || op.monto;
+  if (!monto) return "—";
+  return (
+    getMonedaPrefix(op.moneda) +
+    Math.abs(monto).toLocaleString("es-AR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
+}
+
+type SortCol ="fecha" | "activo" | "total";
 type SortDir = "asc" | "desc";
 
 export function MovimientosTable({
@@ -133,7 +145,7 @@ export function MovimientosTable({
             </span>
           </div>
 
-          <div className="flex gap-2 items-center flex-wrap">
+          <div className="flex gap-2 items-center flex-wrap w-full md:w-auto">
             {/* Filtro tipo */}
             <div className="flex gap-1">
               {(["todos", "compra", "venta"] as const).map((t) => (
@@ -152,7 +164,7 @@ export function MovimientosTable({
             </div>
 
             {/* Períodos */}
-            <div className="flex gap-1">
+            <div className="flex flex-wrap gap-1">
               {PERIODOS_MOVIMIENTOS.map((p, idx) => (
                 <button
                   key={p.label}
@@ -165,13 +177,13 @@ export function MovimientosTable({
             </div>
 
             {/* Rango de fechas */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center flex-wrap sm:flex-nowrap gap-1.5 w-full sm:w-auto">
               <input
                 type="date"
                 value={desde}
                 onChange={(e) => setDesde(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && buscar()}
-                className={DATE_INPUT_CLS}
+                className={`${DATE_INPUT_CLS} flex-1 min-w-[115px] sm:flex-none`}
               />
               <span className="text-[12px] text-text3">—</span>
               <input
@@ -179,11 +191,11 @@ export function MovimientosTable({
                 value={hasta}
                 onChange={(e) => setHasta(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && buscar()}
-                className={DATE_INPUT_CLS}
+                className={`${DATE_INPUT_CLS} flex-1 min-w-[115px] sm:flex-none`}
               />
               <button
                 onClick={buscar}
-                className="px-3.5 py-[5px] rounded-md text-[12px] font-semibold cursor-pointer border border-brand-border font-[inherit] bg-brand-muted text-brand"
+                className="w-full sm:w-auto px-3.5 py-[5px] rounded-md text-[12px] font-semibold cursor-pointer border border-brand-border font-[inherit] bg-brand-muted text-brand"
               >
                 Buscar
               </button>
@@ -195,13 +207,67 @@ export function MovimientosTable({
               placeholder="Buscar ticker…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="text-[13px] px-3 py-[5px] rounded-lg border border-border outline-none font-[inherit] text-text1 bg-card w-[140px] focus:border-brand transition-colors"
+              className="text-[13px] px-3 py-[5px] rounded-lg border border-border outline-none font-[inherit] text-text1 bg-card w-full sm:w-[140px] focus:border-brand transition-colors"
             />
           </div>
         </div>
 
+        {/* Lista mobile */}
+        <ul className="md:hidden">
+          {filtered.map((op) => {
+            const { cls: tipoCls, label: tipoLabel } = getTipoCls(op.tipo);
+            const dividendo = isDividendo(op.tipo);
+            const cantidad = (op.cantidadOperada || op.cantidad) ?? 0;
+            return (
+              <li
+                key={op.numero}
+                className="border-b border-border-light last:border-b-0"
+              >
+                <button
+                  onClick={() => setSelectedNumero(op.numero)}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left active:bg-rowHover font-[inherit]"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-[14px] text-text1">
+                        {op.simbolo}
+                      </span>
+                      <span
+                        className={`text-[10px] font-semibold px-1.5 py-px rounded-[4px] ${tipoCls}`}
+                      >
+                        {tipoLabel}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-text3 mt-px tabular-nums">
+                      {fmtFechaHora(op.fechaOrden)}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0 tabular-nums">
+                    <div
+                      className={`font-bold text-[14px] ${dividendo ? "text-profit" : "text-text1"}`}
+                    >
+                      {fmtTotal(op)}
+                    </div>
+                    {!dividendo && (
+                      <div className="text-[11px] text-text3 mt-px">
+                        {cantidad.toLocaleString("es-AR")} ×{" "}
+                        {fmtPrice(op.precioOperado || op.precio || 0)}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+          {filtered.length === 0 && (
+            <li className="py-8 text-center text-[13px] text-text3">
+              No hay operaciones para los filtros seleccionados.
+            </li>
+          )}
+        </ul>
+
         {/* Table */}
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full border-collapse" style={{ minWidth: 760 }}>
             <thead className="sticky top-0 z-10 bg-card">
               <tr>
@@ -233,7 +299,6 @@ export function MovimientosTable({
               {filtered.map((op, i) => {
                 const { cls: tipoCls, label: tipoLabel } = getTipoCls(op.tipo);
                 const estadoCls = getEstadoCls(op.estado);
-                const monedaPrefix = getMonedaPrefix(op.moneda);
                 return (
                   <tr
                     key={op.numero}
@@ -280,15 +345,7 @@ export function MovimientosTable({
                     <td
                       className={`${TD_BASE} font-bold ${isDividendo(op.tipo) ? "text-profit" : ""}`}
                     >
-                      {op.montoOperado || op.monto
-                        ? monedaPrefix +
-                          Math.abs(
-                            op.montoOperado || op.monto || 0,
-                          ).toLocaleString("es-AR", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })
-                        : "—"}
+                      {fmtTotal(op)}
                     </td>
                     <td className={`${TD_BASE} pr-5 font-medium ${estadoCls}`}>
                       {fmtEstado(op.estado)}

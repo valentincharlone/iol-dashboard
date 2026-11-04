@@ -59,13 +59,13 @@ export default async function DashboardContent() {
     : null;
 
   return (
-    <div className="p-4 pb-12 md:p-6 md:h-dvh flex flex-col gap-4 md:gap-5">
+    <div className="p-4 pb-12 md:p-6 xl:h-dvh flex flex-col gap-4 md:gap-5">
       {/* KPI row */}
-      <div className="grid grid-cols-2 md:grid-cols-kpi gap-3 md:gap-3.5">
+      <div className="grid grid-cols-2 xl:grid-cols-kpi gap-3 md:gap-3.5">
         {/* Hero */}
         <ValuacionCard
           valuacion={totalValuacion}
-          className="col-span-2 md:col-span-1"
+          className="col-span-2 xl:col-span-1"
         >
           <div className="flex flex-wrap gap-3 md:gap-4">
             <div className="text-[12px] opacity-65">
@@ -85,7 +85,7 @@ export default async function DashboardContent() {
         </ValuacionCard>
 
         {/* Resultado total */}
-        <div className="bg-card rounded-card shadow-sm p-5 flex flex-col">
+        <div className="col-span-2 sm:col-span-1 min-w-0 bg-card rounded-card shadow-sm p-5 flex flex-col">
           <div className="text-[12px] font-medium text-text3 uppercase tracking-wide">
             {resultado ? "Resultado total" : "Rendimiento cartera"}
           </div>
@@ -155,7 +155,7 @@ export default async function DashboardContent() {
         </div>
 
         {/* Variación hoy */}
-        <div className="bg-card rounded-card shadow-sm p-5">
+        <div className="min-w-0 bg-card rounded-card shadow-sm p-5">
           <div className="flex items-center justify-between gap-2">
             <div className="text-[12px] font-medium text-text3 uppercase tracking-wide">
               Variación hoy
@@ -176,7 +176,7 @@ export default async function DashboardContent() {
         </div>
 
         {/* Disponible */}
-        <div className="col-span-2 md:col-span-1 bg-card rounded-card shadow-sm p-5">
+        <div className="sm:col-span-2 xl:col-span-1 min-w-0 bg-card rounded-card shadow-sm p-5">
           <div className="text-[12px] font-medium text-text3 uppercase tracking-wide mb-2.5">
             Disponible
           </div>
@@ -190,7 +190,7 @@ export default async function DashboardContent() {
                   <span className="text-[10px] text-text3 font-semibold min-w-[24px]">
                     {r.label}
                   </span>
-                  <span className="text-[22px] font-bold tabular-nums text-text1">
+                  <span className="text-[18px] sm:text-[22px] font-bold tabular-nums text-text1">
                     {r.value}
                   </span>
                 </div>
@@ -249,7 +249,7 @@ export default async function DashboardContent() {
 
       {/* Distribución + Holdings */}
       {/* En desktop ocupa el alto que queda del viewport: nada de scroll */}
-      <div className="grid grid-cols-1 md:grid-cols-bottom md:grid-rows-[minmax(0,1fr)] md:flex-1 md:min-h-0 gap-4 md:gap-5 items-stretch">
+      <div className="grid grid-cols-1 xl:grid-cols-bottom xl:grid-rows-[minmax(0,1fr)] xl:flex-1 xl:min-h-0 gap-4 md:gap-5 items-stretch">
         <div className="bg-card rounded-card shadow-sm p-5 md:p-6 flex flex-col min-h-0">
           <p className="text-[13px] font-semibold text-text2 mb-3">
             Distribución

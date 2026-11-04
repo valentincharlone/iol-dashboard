@@ -45,6 +45,9 @@ const ALL_COLS: { key: ColKey; label: string }[] = [
   { key: "peso", label: "Peso" },
 ];
 
+/** Filas que muestra la versión resumida (home) en mobile. */
+const MOBILE_RESUMEN = 5;
+
 const DENSITY_PY: Record<Density, string> = {
   compact: "py-1.5",
   normal: "py-3",
@@ -159,6 +162,11 @@ export function HoldingsTable({
     const wrap = tableWrapRef.current;
     if (!fit || !wrap) return;
     const medir = () => {
+      // Solo en desktop el layout fija el alto; en pantallas chicas la página scrollea.
+      if (!window.matchMedia("(min-width: 1280px)").matches) {
+        setFilasQueEntran(null);
+        return;
+      }
       const thead = wrap.querySelector("thead");
       const fila = wrap.querySelector<HTMLElement>("tbody tr");
       if (!thead || !fila) return;
@@ -241,7 +249,7 @@ export function HoldingsTable({
                 Ver todos →
               </Link>
             ) : (
-              <div className="flex items-center gap-2.5">
+              <div className="hidden md:flex items-center gap-2.5">
                 <div className="flex gap-1">
                   {densityBtn("compact", "C")}
                   {densityBtn("normal", "N")}
@@ -313,10 +321,65 @@ export function HoldingsTable({
           )}
         </div>
 
+        {/* Lista mobile: la tabla no entra en pantallas chicas */}
+        <ul className="md:hidden">
+          {(resumida ? displayed.slice(0, MOBILE_RESUMEN) : displayed).map(
+            (p) => {
+              const isPos = p.pnlPorcentaje >= 0;
+              const hoyPos = p.variacionDiaria >= 0;
+              const badge = getBadge(p.tipo);
+              return (
+                <li key={p.ticker} className="border-b border-border-light last:border-b-0">
+                  <Link
+                    href={`/dashboard/holdings/${encodeURIComponent(p.ticker)}`}
+                    className="flex items-center justify-between gap-3 px-4 py-3 active:bg-rowHover"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-[14px] text-text1">
+                          {p.ticker}
+                        </span>
+                        <span
+                          className="text-[9px] font-semibold px-1 py-px rounded-[3px] tracking-[0.3px]"
+                          style={{ background: badge.bg, color: badge.text }}
+                        >
+                          {tipoLabel(p.tipo)}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-text3 mt-px truncate">
+                        {p.cantidad.toLocaleString("es-AR")} ·{" "}
+                        {fmtMoney(p.precioActual)}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0 tabular-nums">
+                      <div className="font-bold text-[14px] text-text1">
+                        {fmtMoney(p.valuacion)}
+                      </div>
+                      <div className="text-[11px] mt-px">
+                        <span
+                          className={`font-semibold ${isPos ? "text-profit" : "text-loss"}`}
+                        >
+                          {fmtPct(p.pnlPorcentaje)}
+                        </span>
+                        <span className="text-text3"> · hoy </span>
+                        <span
+                          className={`font-semibold ${hoyPos ? "text-profit" : "text-loss"}`}
+                        >
+                          {fmtPct(p.variacionDiaria)}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </li>
+              );
+            },
+          )}
+        </ul>
+
         {/* Table */}
         <div
           ref={tableWrapRef}
-          className={`overflow-x-auto ${fit ? "flex-1 min-h-0 overflow-y-hidden" : ""}`}
+          className={`hidden md:block overflow-x-auto ${fit ? "xl:flex-1 xl:min-h-0 xl:overflow-y-hidden" : ""}`}
         >
           <table className="w-full border-collapse" style={{ minWidth: 760 }}>
             <thead className="sticky top-0 z-10 bg-card">
