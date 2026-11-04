@@ -144,12 +144,61 @@ export function CotizacionesTable({ items }: Props) {
           placeholder="Buscar ticker o nombre…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="text-[13px] px-3 py-1.5 rounded-lg border border-border outline-none font-[inherit] text-text1 bg-card w-[220px] focus:border-brand transition-colors"
+          className="text-[13px] px-3 py-1.5 rounded-lg border border-border outline-none font-[inherit] text-text1 bg-card w-full sm:w-[220px] focus:border-brand transition-colors"
         />
       </div>
 
+      {/* Lista mobile */}
+      <ul className="md:hidden">
+        {sorted.map((item) => {
+          const pos = item.variacionPorcentual >= 0;
+          const badge = getBadge(item.tipo);
+          return (
+            <li
+              key={item.ticker}
+              className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border-light last:border-b-0"
+            >
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-[14px] text-text1">
+                    {item.ticker}
+                  </span>
+                  <span
+                    className="text-[9px] font-semibold px-[5px] py-px rounded-[3px] tracking-[0.3px]"
+                    style={{ background: badge.bg, color: badge.text }}
+                  >
+                    {tipoLabel(item.tipo)}
+                  </span>
+                </div>
+                <div className="text-[11px] text-text3 mt-px truncate">
+                  {item.nombre}
+                </div>
+                <div className="text-[10px] text-text3 mt-0.5 tabular-nums">
+                  Mín {fmtMoney(item.minimo)} · Máx {fmtMoney(item.maximo)}
+                </div>
+              </div>
+              <div className="text-right shrink-0 tabular-nums">
+                <div className="font-bold text-[14px] text-text1">
+                  {fmtMoney(item.precio)}
+                </div>
+                <div
+                  className={`text-[12px] font-semibold ${pos ? "text-profit" : "text-loss"}`}
+                >
+                  {fmtPct(item.variacionPorcentual)}
+                </div>
+              </div>
+            </li>
+          );
+        })}
+        {sorted.length === 0 && (
+          <li className="py-8 text-center text-[13px] text-text3">
+            No se encontraron instrumentos.
+          </li>
+        )}
+      </ul>
+
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full border-collapse" style={{ minWidth: 820 }}>
           <thead className="sticky top-0 z-10 bg-card">
             <tr>

@@ -26,7 +26,7 @@ export function DashboardShell({
 
   useEffect(() => {
     const check = () => {
-      const mobile = window.innerWidth < 768;
+      const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
       if (!mobile) setMobileOpen(false);
     };

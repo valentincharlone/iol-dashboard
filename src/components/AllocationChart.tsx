@@ -67,9 +67,9 @@ function DonutChart({
 
   return (
     // En desktop el donut toma el alto libre de la card (la leyenda tiene prioridad)
-    <div className="flex flex-col items-center gap-5 md:flex-1 md:min-h-0">
-      <div className="w-full flex justify-center md:flex-1 md:min-h-[140px]">
-        <div className="relative aspect-square w-full max-w-[190px] md:w-auto md:h-full md:max-w-none md:max-h-[230px]">
+    <div className="flex flex-col items-center gap-5 xl:flex-1 xl:min-h-0">
+      <div className="w-full flex justify-center xl:flex-1 xl:min-h-[140px]">
+        <div className="relative aspect-square w-full max-w-[190px] xl:w-auto xl:h-full xl:max-w-none xl:max-h-[230px]">
         <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`}>
           <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
             {segments.map((seg, i) => {
