@@ -71,7 +71,7 @@ export function DashboardShell({
       </div>
 
       {/* Main */}
-      <main className={`flex-1 overflow-y-auto ${isMobile ? "ml-0" : ""}`}>
+      <main className={`flex-1 min-w-0 overflow-y-auto ${isMobile ? "ml-0" : ""}`}>
         {/* Barra superior mobile */}
         {isMobile && (
           <div className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 bg-card border-b border-border">

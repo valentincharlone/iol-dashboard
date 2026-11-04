@@ -9,7 +9,7 @@ interface Props {
 export function ValuacionCard({ valuacion, className = "", children }: Props) {
   return (
     <div
-      className={`bg-gradient-to-br from-[#4338CA] to-[#818CF8] rounded-card p-6 md:p-7 text-white relative overflow-hidden ${className}`}
+      className={`bg-gradient-to-br from-[#4338CA] to-[#818CF8] rounded-card p-6 md:p-7 text-white relative overflow-hidden [contain:paint] ${className}`}
     >
       <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/[0.08]" />
       <div className="absolute top-[60px] -right-20 w-[200px] h-[200px] rounded-full bg-white/[0.04]" />

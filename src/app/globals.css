@@ -66,6 +66,14 @@ html.dark {
   --badge-default-bg:     #1e2235; --badge-default-text:     #9FA3C7;
 }
 
+/* iOS Safari agranda el layout viewport si algo desborda en X (y arrastra todo
+   el layout, incluida la barra superior). `clip` corta sin crear un scroll
+   container, así que no rompe los `position: sticky`. */
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   font-family: var(--font-jakarta), system-ui, -apple-system, sans-serif;
   background-color: var(--bg);

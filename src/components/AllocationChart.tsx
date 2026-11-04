@@ -116,14 +116,14 @@ function Legend({ segments }: { segments: Segment[] }) {
     <div className="flex flex-col gap-2.5 w-full">
       {segments.map((seg) => (
         <div key={seg.sector} className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <span
               className="w-2.5 h-2.5 rounded-[3px] shrink-0"
               style={{ background: seg.color }}
             />
-            <span className="text-[14px] text-text2">{seg.label}</span>
+            <span className="text-[14px] text-text2 truncate">{seg.label}</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <span className="text-[14px] font-semibold tabular-nums">
               {fmtMoney(seg.value)}
             </span>
