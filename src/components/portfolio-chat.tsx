@@ -3,6 +3,37 @@
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { Sparkles, X, ArrowUp, Square, RotateCcw } from "lucide-react";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+// Estilos de markdown para las respuestas del asistente (sin plugin de typography).
+const MD: Components = {
+  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+  strong: ({ children }) => <strong className="font-semibold text-text1">{children}</strong>,
+  h1: ({ children }) => <p className="font-semibold text-[14px] mb-1.5">{children}</p>,
+  h2: ({ children }) => <p className="font-semibold text-[14px] mb-1.5">{children}</p>,
+  h3: ({ children }) => <p className="font-semibold mb-1">{children}</p>,
+  ul: ({ children }) => <ul className="list-disc pl-4 mb-2 last:mb-0 space-y-0.5">{children}</ul>,
+  ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 last:mb-0 space-y-0.5">{children}</ol>,
+  li: ({ children }) => <li className="marker:text-text3">{children}</li>,
+  code: ({ children }) => (
+    <code className="px-1 py-0.5 rounded bg-surface2 text-[12px]">{children}</code>
+  ),
+  a: ({ children, href }) => (
+    <a href={href} target="_blank" rel="noreferrer" className="text-brand underline">
+      {children}
+    </a>
+  ),
+  table: ({ children }) => (
+    <div className="overflow-x-auto mb-2">
+      <table className="w-full text-[12px] tabular-nums">{children}</table>
+    </div>
+  ),
+  th: ({ children }) => (
+    <th className="text-left font-semibold text-text2 border-b border-border px-2 py-1">{children}</th>
+  ),
+  td: ({ children }) => <td className="border-b border-border-light px-2 py-1">{children}</td>,
+};
 
 const SUGERENCIAS = [
   "¿Qué posición me está rindiendo peor?",
@@ -109,10 +140,14 @@ export function PortfolioChat() {
                 >
                   {m.parts.map((part, i) => {
                     if (part.type === "text") {
-                      return (
+                      return m.role === "user" ? (
                         <p key={i} className="whitespace-pre-wrap">
                           {part.text}
                         </p>
+                      ) : (
+                        <ReactMarkdown key={i} remarkPlugins={[remarkGfm]} components={MD}>
+                          {part.text}
+                        </ReactMarkdown>
                       );
                     }
                     if (part.type === "tool-getPortfolio" && part.state !== "output-available") {
