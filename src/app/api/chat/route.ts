@@ -31,6 +31,14 @@ No das recomendaciones de compra o venta: describís y analizás.`,
   });
 
   return createUIMessageStreamResponse({
-    stream: toUIMessageStream({ stream: result.stream }),
+    stream: toUIMessageStream({
+      stream: result.stream,
+      // Por defecto el SDK oculta el error real. Es un dashboard personal detrás
+      // de login, así que lo mostramos para poder diagnosticar.
+      onError: (error) => {
+        console.error("[api/chat]", error);
+        return error instanceof Error ? error.message : String(error);
+      },
+    }),
   });
 }

@@ -134,7 +134,9 @@ export function PortfolioChat() {
 
             {error && (
               <div className="flex items-center gap-2 text-[12px] text-loss bg-loss-bg rounded-lg px-3 py-2">
-                <span className="flex-1">Algo falló al responder.</span>
+                <span className="flex-1 break-words min-w-0">
+                  Algo falló al responder: {error.message}
+                </span>
                 <button
                   onClick={() => regenerate()}
                   className="flex items-center gap-1 font-medium hover:underline"
