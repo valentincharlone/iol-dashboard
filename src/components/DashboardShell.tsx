@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
+import { PortfolioChat } from "./portfolio-chat";
 import { REFRESH_INTERVAL_MS, IOL_LOGO_GRADIENT } from "@/lib/config";
 
 export function DashboardShell({
@@ -94,6 +95,8 @@ export function DashboardShell({
         )}
         {children}
       </main>
+
+      <PortfolioChat />
     </div>
   );
 }
